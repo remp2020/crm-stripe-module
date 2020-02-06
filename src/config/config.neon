@@ -1,0 +1,15 @@
+services:
+	moduleManager:
+		setup:
+			- addModule(Crm\StripeModule\StripeModule())
+
+	- Crm\StripeModule\Api\SetupIntentHandler
+	- Crm\StripeModule\Seeders\ConfigsSeeder
+	- Crm\StripeModule\Seeders\PaymentGatewaysSeeder
+	- Crm\StripeModule\Gateways\Stripe
+	- Crm\StripeModule\Gateways\StripeRecurrent
+
+	gatewayFactory:
+		setup:
+			- registerGateway(stripe, Crm\StripeModule\Gateways\Stripe)
+			- registerGateway(stripe_recurrent, Crm\StripeModule\Gateways\StripeRecurrent)

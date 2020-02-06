@@ -1,0 +1,16 @@
+config:
+    sharedsecret:
+        name: "SLSP Sporopay secret"
+        description: "Shared secret provided by the bank to sign requests (e.g. 1234abcd)"
+    accountnumberprefix:
+        name: "SLSP Sporopay predčíslie účtu"
+        description: "Account number prefix of merchant (e.g. 999999)"
+    accountnumber:
+        name: "SLSP Sporopay číslo účtu"
+        description: 'Account number of merchant (e.g. 1234567890)'
+    specificsymbol:
+        name: "SLSP Sporopay špecifický symbol"
+        description: 'Specific symbol to be used for each payment (e.g. 1122334455)'
+    mode:
+        name: "SLSP Sporopay mód"
+        description: 'Mode in which the gateway is running ("test" or "live")'

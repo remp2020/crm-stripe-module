@@ -1,0 +1,16 @@
+config:
+    sharedsecret:
+        name: "SLSP Sporopay secret"
+        description: "Heslo poskytnuté bankou na podpisovanie requestov (napr. 1234abcd)"
+    accountnumberprefix:
+        name: "SLSP Sporopay predčíslie účtu"
+        description: "Predčíslie účtu obchodníka (napr. 999999)"
+    accountnumber:
+        name: "SLSP Sporopay číslo účtu"
+        description: 'Číslo účtu obchodníka (napr. 1234567890)'
+    specificsymbol:
+        name: "SLSP Sporopay špecifický symbol"
+        description: 'Špecifický symbol, ktorý sa má použiť pri platbe (napr. 1122334455)'
+    mode:
+        name: "SLSP Sporopay mód"
+        description: 'Mód, v ktorom platobná brána bude inicializovaná ("test" alebo "live")'

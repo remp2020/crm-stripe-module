@@ -1,0 +1,20 @@
+{
+  "name": "remp/crm-stripe-module",
+  "description": "CRM Stripe Module",
+  "type": "library",
+  "homepage": "https://remp2020.com",
+  "license": "MIT",
+  "require": {
+    "php": "^7.1",
+    "omnipay/stripe": "^3.1",
+    "stripe/stripe-php": "7.22"
+
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Crm\\SlspSporopayModule\\": "src/"
+    },
+    "classmap": ["src/"]
+  }
+}
