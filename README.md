@@ -2,21 +2,13 @@
 
 ## Installation
 
-Add CRM module to your skeleton app with Composer.
+We recommend using Composer for installation and update management. To add CRM Stripe extension to your [REMP CRM](https://github.com/remp2020/crm-skeleton/) application use following command:
 
 ```bash
 composer require remp/crm-stripe-module
 ```
 
-We recommend using Composer for installation and update management.
-
-```bash
-php bin/command.php application:seed
-```
-
-### Enabling module
-
-1. Add installed extension to your app/config/config.neon file.
+Enable installed extension in your `app/config/config.neon` file:
 
 ```neon
 extensions:
@@ -24,11 +16,19 @@ extensions:
 	- Crm\StripeModule\DI\StripeModuleExtension
 ```
 
-2. Enter Stripe API keys to CRM
+Seed Stripe payment gateway and its configuration:
 
-    - Visit to CRM admin settings (gear icon) - Payments
-    - Enter *Stripe publishable* key
-    - Enter *Stripe secret* key
+```bash
+php bin/command.php application:seed
+```
+
+## Configuration & API keys
+
+Enter Stripe API keys to CRM
+
+   - Visit to CRM admin settings (gear icon) - Payments
+   - Enter *Stripe publishable* key
+   - Enter *Stripe secret* key
     
 Keys can be found at [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys). If you don't have the account already, you'll need to create one.  
 
