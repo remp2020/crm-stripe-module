@@ -6,7 +6,6 @@
   "license": "MIT",
   "require": {
     "php": "^7.1",
-    "omnipay/stripe": "^3.1",
     "stripe/stripe-php": "7.22"
 
   },

@@ -32,5 +32,4 @@ class SetupIntentHandler extends ApiHandler
         $response->setHttpCode(Response::S200_OK);
         return $response;
     }
-
 }

@@ -11,6 +11,7 @@ use Crm\ApplicationModule\SeederManager;
 use Crm\StripeModule\Api\SetupIntentHandler;
 use Crm\StripeModule\Seeders\ConfigsSeeder;
 use Crm\StripeModule\Seeders\PaymentGatewaysSeeder;
+use Crm\StripeModule\Seeders\SalesFunnelsSeeder;
 
 class StripeModule extends CrmModule
 {
@@ -18,6 +19,7 @@ class StripeModule extends CrmModule
     {
         $seederManager->addSeeder($this->getInstance(ConfigsSeeder::class));
         $seederManager->addSeeder($this->getInstance(PaymentGatewaysSeeder::class));
+        $seederManager->addSeeder($this->getInstance(SalesFunnelsSeeder::class));
     }
 
     public function registerApiCalls(ApiRoutersContainerInterface $apiRoutersContainer)

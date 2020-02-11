@@ -6,6 +6,7 @@ services:
 	- Crm\StripeModule\Api\SetupIntentHandler
 	- Crm\StripeModule\Seeders\ConfigsSeeder
 	- Crm\StripeModule\Seeders\PaymentGatewaysSeeder
+	- Crm\StripeModule\Seeders\SalesFunnelsSeeder
 	- Crm\StripeModule\Gateways\Stripe
 	- Crm\StripeModule\Gateways\StripeRecurrent
 

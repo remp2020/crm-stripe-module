@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+    <title>Buy subscription</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js" integrity="sha256-sPB0F50YUDK0otDnsfNHawYmA5M0pjjUf4TvRJkGFrI=" crossorigin="anonymous"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script><![endif]-->
+
+    {{ headEnd|raw }}
+</head>
+
+<body>
+
+<form action="/sales-funnel/sales-funnel-frontend/submit" id="frm-payment" method="post" target="_top">
+
+<div class="container">
+    <input type="hidden" name="funnel_url_key" value="{{ funnel.url_key }}">
+
+    <h1>Buy new subscription</h1>
+
+    <div class="alert alert-warning" role="alert">
+        <p>This is a sample sales funnel generated during initial seeding. You can:</p>
+        <ul>
+            <li><a href="/sales-funnel/sales-funnels-admin/edit/{{ funnel.id }}">edit HTML</a> of this sales funnel</li>
+            <li><a href="/sales-funnel/sales-funnels-admin/show/{{ funnel.id }}">edit configuration</a> of this sales funnel (add/remove gateways and subscription types)</li>
+            <li><a href="/sales-funnel/sales-funnels-admin/new">create new</a> sales funnel</li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="show-error">Select type of subscription</h3>
+
+            {% if subscriptionTypes is empty %}
+                There are no subscription types allowed for this sales funnel. Head to <a href="/sales-funnel/sales-funnels-admin/">CRM admin</a>, click on the detail of funnel and select at least one subscription type.
+            {% else %}
+                <div class="show-error">
+                    {% for subscriptionType in subscriptionTypes %}
+                        <div class="radio">
+                            <label><input type="radio" name="subscription_type" value="{{ subscriptionType.code }}">{{ subscriptionType.user_label }} ({{ subscriptionType.price }} EUR)</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h3>Select payment gateway</h3>
+
+            {% if gateways is empty %}
+                There are no gateways allowed  for this sales funnel. Head to <a href="/sales-funnel/sales-funnels-admin/">CRM admin</a>, click on the detail of funnel and select at least one gateway.
+            {% else %}
+                <div class="show-error">
+                    {% for gateway in gateways %}
+                        <div class="radio">
+                            <label><input type="radio" name="payment_gateway" value="{{ gateway.code }}">{{ gateway.name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    {% if not isLogged %}
+        <style type="text/css">
+            #password_field { display:none }
+        </style>
+
+        <h3>Log in</h3>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group controls show-error">
+                    <input type="text"
+                           required
+                           data-validation="email"
+                           id="email"
+                           name="email"
+                           class="form-control optout-email input-text"
+                           placeholder="Enter e-mail address" />
+
+                    <span id="email-help-block" class="help-block">We'll send you access information to this email address.</span>
+                </div>
+
+                <div class="form-group controls show-error" id="password_field">
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-group optout-password password input-text"
+                           placeholder="Enter password" />
+
+                    <span class="help-block" id="password-help-block">
+                        E-mail is already registered, please enter your password. <a href="/users/users/reset-password" target="_blank">reset password?</a>)
+                    </span>
+
+                    <span class="help-block" id="password-help-block-fail" style="display: none">
+                        Password is not correct
+                    </span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>You're currently logged in as <strong>{{ email }}</strong></p>
+    {% endif %}
+
+    <hr>
+
+    <div>
+        <div class="row" style="margin-bottom: 1em;">
+            <div class="col-md-4">
+                <!-- placeholder for Elements -->
+                <div id="card-element" class="form-control"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <input id="cardholder-name" placeholder="Card holder" class="form-control mb-4" type="text">
+            </div>
+        </div>
+
+        <!-- Used to display form errors -->
+        <div id="card-errors" role="alert"></div>
+        <input type="hidden" name="payment_metadata[payment_method_id]" id="stripePaymentMethodId">
+    </div>
+
+    <hr>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</div>
+
+</form>
+
+<script src="/layouts/default/js/iframeResizer.contentWindow.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var $password_field = $('#password_field');
+        var $password = $('#password');
+        var $email = $('#email');
+
+        function checkEmail(callback) {
+            $.ajax({
+                method: 'POST',
+                url: '/api/v1/users/email',
+                data: {
+                    email: $email.val(),
+                    password: $password.val(),
+                },
+                timeout: 20000
+            }).done(function (response) {
+                callback(response);
+            }).fail(function (jqXHR, textStatus) {
+                if (textStatus === 'timeout') {
+                    alert("server timeout");
+                } else {
+                    alert("server error");
+                }
+            });
+        }
+
+        function processStripe(form) {
+            var paymentMethodIdField = $('#stripePaymentMethodId');
+            var cardholderName = $('#cardholder-name');
+            var selectedGateway = $('input[name=payment_gateway]').val();
+
+            if (selectedGateway === 'stripe') {
+                stripe.createPaymentMethod('card', cardElement, {
+                    billing_details: {name: cardholderName.value }
+                }).then(function(result) {
+                    if (result.error) {
+                        alert(result.error.message);
+                    } else {
+                        paymentMethodIdField.val(result.paymentMethod.id);
+                        debugger;
+                        form.submit();
+                    }
+                });
+                return false;
+            }
+
+            if (selectedGateway === 'stripe_recurrent') {
+                $.post('/api/v1/stripe/setup-intent', function($data) {
+                    stripe.confirmCardSetup(
+                        $data['client_secret'],
+                        {
+                            payment_method: {
+                                card: cardElement,
+                                billing_details: {
+                                    name: cardholderName.value,
+                                },
+                            }
+                        },
+                    ).then(function(result) {
+                        if (result.error) {
+                            alert(result.error.message);
+                        } else {
+                            paymentMethodIdField.val(result.setupIntent.payment_method);
+                            form.submit();
+                        }
+                    });
+                }, 'json');
+                return false;
+            }
+        }
+
+        $email.change(function () {
+            checkEmail(function (response) {
+                if (response.status && response.status === 'taken') {
+                    $('#password-help-block-fail').hide();
+                    $('#password-help-block').show();
+                    $password_field.show();
+                    $password_field.closest('.show-error').addClass('has-error');
+                    $('#email-help-block').html("E-mail is realdy registered");
+                } else if (response.status === 'error') {
+                    if (response.code === 'email_missing') {
+                        return;
+                    }
+
+                    $email.closest('.show-error').addClass('has-error');
+                    if (response.code === 'invalid_email') {
+                        $('#email-help-block').html("Invalid e-mail address");
+                    }
+                } else {
+                    $password_field.hide();
+                    $('#email-help-block').html("");
+                }
+            });
+        });
+
+        $('form').on('submit', function () {
+            $('.show-error').removeClass('has-error')
+        });
+
+        $('form').validate({
+            rules: {
+                email: {
+                    email: true
+                },
+                payment_gateway: {
+                    required: true
+                },
+                subscription_type: {
+                    required: true
+                },
+            },
+            highlight: function(element) {
+                console.log($(element), $(element).closest('.show-error'));
+                $(element).closest('.show-error').addClass('has-error');
+            },
+            unhighlight: function(element) {
+                $(element).closest('.show-error').removeClass('has-error');
+            },
+            errorElement: 'div',
+            errorClass: 'help-block row',
+            errorPlacement: function(error, element) {
+
+            },
+            submitHandler: function (form) {
+                {% if isLogged %}
+                    processStripe(form);
+                {% else %}
+                checkEmail(function(response) {
+                    if (response.status && response.status === 'taken') {
+                        if ($password_field.find('input').val() === '') {
+                            $password_field.show();
+                            $('#password-help-block-fail').hide();
+                            $('#password-help-block').show();
+                            $password_field.closest('.show-error').addClass('has-error');
+                            return false;
+                        } else if (response.password === false) {
+                            $password_field.show();
+                            $('#password-help-block-fail').show();
+                            $('#password-help-block').hide();
+                            $password_field.closest('.show-error').addClass('has-error');
+                            return false;
+                        } else {
+                            processStripe(form);
+                        }
+                    } else if (response.status === 'error') {
+                        // alert(response.message);
+                    } else {
+                        processStripe(form);
+                    }
+                });
+                {% endif %}
+            },
+            invalidHandler: function (form, validator) {
+                if (!validator.numberOfInvalids())
+                    return;
+
+                window.parent.$('html, body').animate({
+                    scrollTop: $(validator.errorList[0].element).offset().top - 120
+                }, 400);
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    var stripe = Stripe('-- INCLUDE YOUR PUBLISHABLE KEY HERE --');
+    var elements = stripe.elements();
+
+    var cardElement = elements.create("card");
+    cardElement.mount("#card-element");
+    cardElement.addEventListener('change', function(event) {
+        var displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+</script>
+
+</body>
+</html>
