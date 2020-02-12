@@ -41,6 +41,10 @@ class AbstractStripe extends GatewayAbstract
 
     protected function initialize()
     {
+        $secret = $this->applicationConfig->get('stripe_secret');
+        if (!$secret) {
+            throw new \Exception('Unable to initialize stripe gateway, secret is missing from CRM Admin configuration');
+        }
         \Stripe\Stripe::setApiKey($this->applicationConfig->get('stripe_secret'));
     }
 
@@ -103,21 +107,21 @@ class AbstractStripe extends GatewayAbstract
             'vs' => $payment->variable_symbol,
         ]);
 
-        // attach or create stripe customer to payment method
-        $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
-        if ($stripeCustomerId) {
-            $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
-            $paymentMethod->attach(['customer' => $stripeCustomerId]);
-        } else {
-            $customer = \Stripe\Customer::create([
-                'payment_method' => $paymentMethodId,
-            ]);
-            $stripeCustomerId = $customer->id;
-            $this->userMetaRepository->add($payment->user, 'stripe_customer', $stripeCustomerId);
-        }
-
-        // create payment intent instance for charging
         try {
+            // attach or create stripe customer to payment method
+            $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
+            if ($stripeCustomerId) {
+                $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
+                $paymentMethod->attach(['customer' => $stripeCustomerId]);
+            } else {
+                $customer = \Stripe\Customer::create([
+                    'payment_method' => $paymentMethodId,
+                ]);
+                $stripeCustomerId = $customer->id;
+                $this->userMetaRepository->add($payment->user, 'stripe_customer', $stripeCustomerId);
+            }
+
+            // create payment intent instance for charging
             $this->paymentIntent = PaymentIntent::create([
                 'amount' => $this->calculateStripeAmount($payment->amount, $this->applicationConfig->get('currency')),
                 'currency' => $this->applicationConfig->get('currency'),
@@ -132,9 +136,16 @@ class AbstractStripe extends GatewayAbstract
                 'confirm' => true,
             ]);
         } catch (\Stripe\Exception\CardException $e) {
-            // the confirmation part failed, let's extract errors
-            $paymentIntentId = $e->getError()->payment_intent->id;
-            $this->paymentIntent = PaymentIntent::retrieve($paymentIntentId);
+            if (isset($e->getError()->payment_intent)) {
+                // the confirmation part failed, let's extract errors
+                $paymentIntentId = $e->getError()->payment_intent->id;
+                $this->paymentIntent = PaymentIntent::retrieve($paymentIntentId);
+            }
+        }
+
+        if (!$this->paymentIntent) {
+            // if we don't have paymentIntent by this time, redirect away so it can fail gracefully
+            $this->httpResponse->redirect($returnUrl);
         }
 
         $this->paymentMetaRepository->add($payment, 'payment_intent_id', $this->paymentIntent->id);
@@ -161,6 +172,9 @@ class AbstractStripe extends GatewayAbstract
         $this->initialize();
 
         $paymentIntentId = $this->paymentMetaRepository->values($payment, 'payment_intent_id')->fetchField('value');
+        if (!$paymentIntentId) {
+            return false;
+        }
         $this->paymentIntent = PaymentIntent::retrieve($paymentIntentId);
 
         if ($this->paymentIntent->payment_method) {

@@ -32,4 +32,12 @@ final class StripeModuleExtension extends CompilerExtension implements ITranslat
     {
         return [__DIR__ . '/../lang/'];
     }
+
+    public function beforeCompile()
+    {
+        $builder = $this->getContainerBuilder();
+        // load presenters from extension to Nette
+        $builder->getDefinition($builder->getByType(\Nette\Application\IPresenterFactory::class))
+            ->addSetup('setMapping', [['Stripe' => 'Crm\StripeModule\Presenters\*Presenter']]);
+    }
 }
