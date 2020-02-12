@@ -24,7 +24,7 @@ class PaymentGatewaysSeeder implements ISeeder
             $this->paymentGatewaysRepository->add(
                 'Stripe',
                 $code,
-                100,
+                120,
                 true,
                 false
             );
@@ -38,7 +38,7 @@ class PaymentGatewaysSeeder implements ISeeder
             $this->paymentGatewaysRepository->add(
                 'Stripe Recurrent',
                 $code,
-                110,
+                121,
                 true,
                 true
             );
