@@ -126,7 +126,7 @@
 
         <div class="row">
             <div class="col-md-4">
-                <input id="cardholder-name" placeholder="Card holder" class="form-control mb-4" type="text">
+                <input id="cardholder-name" name="payment_metadata[cardholder_name]" placeholder="Card holder" class="form-control mb-4" type="text">
             </div>
         </div>
 
@@ -183,7 +183,6 @@
                         alert(result.error.message);
                     } else {
                         paymentMethodIdField.val(result.paymentMethod.id);
-                        debugger;
                         form.submit();
                     }
                 });

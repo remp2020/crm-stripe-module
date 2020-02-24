@@ -99,6 +99,7 @@ class AbstractStripe extends GatewayAbstract
 
         // redirect to page, where JS library redirects user to Stripe Checkout page
         $this->httpResponse->redirect($this->linkGenerator->link('Stripe:Checkout:Redirect', ['checkoutSessionId' => $checkoutSession->id]));
+        exit();
     }
 
     protected function processSetupIntent($paymentMethodId, $payment, $futureUsage = 'on_session')
@@ -114,9 +115,15 @@ class AbstractStripe extends GatewayAbstract
                 $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
                 $paymentMethod->attach(['customer' => $stripeCustomerId]);
             } else {
-                $customer = \Stripe\Customer::create([
+                $payload = [
                     'payment_method' => $paymentMethodId,
-                ]);
+                    'email' => $payment->user->email,
+                ];
+                $cardholderName = $this->paymentMetaRepository->values($payment, 'cardholder_name')->fetchField('value');
+                if ($cardholderName) {
+                    $payload['name'] = $cardholderName;
+                }
+                $customer = \Stripe\Customer::create($payload);
                 $stripeCustomerId = $customer->id;
                 $this->userMetaRepository->add($payment->user, 'stripe_customer', $stripeCustomerId);
             }
@@ -146,6 +153,7 @@ class AbstractStripe extends GatewayAbstract
         if (!$this->paymentIntent) {
             // if we don't have paymentIntent by this time, redirect away so it can fail gracefully
             $this->httpResponse->redirect($returnUrl);
+            exit();
         }
 
         $this->paymentMetaRepository->add($payment, 'payment_intent_id', $this->paymentIntent->id);
@@ -154,6 +162,7 @@ class AbstractStripe extends GatewayAbstract
         if ($this->paymentIntent->status === PaymentIntent::STATUS_REQUIRES_ACTION) {
             if ($this->paymentIntent->next_action['type'] === 'redirect_to_url') {
                 $this->httpResponse->redirect($this->paymentIntent->next_action['redirect_to_url']['url']);
+                exit();
             }
             throw new GatewayFail('Unable to proceed with payment, unsupported next action type: ' . $this->paymentIntent->next_action);
         }
@@ -161,6 +170,7 @@ class AbstractStripe extends GatewayAbstract
         // direct confirmation
         if ($this->paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
             $this->httpResponse->redirect($returnUrl);
+            exit();
         }
 
         // ouch, shouldn't get here
