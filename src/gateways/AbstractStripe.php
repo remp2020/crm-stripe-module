@@ -87,7 +87,7 @@ class AbstractStripe extends GatewayAbstract
         $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
         if ($stripeCustomerId) {
             $checkoutSessionConfig['customer'] = $stripeCustomerId;
-        } else {
+        } elseif (isset($payment->user->email)) {
             $checkoutSessionConfig['customer_email'] = $payment->user->email;
         }
 
@@ -117,8 +117,12 @@ class AbstractStripe extends GatewayAbstract
             } else {
                 $payload = [
                     'payment_method' => $paymentMethodId,
-                    'email' => $payment->user->email,
                 ];
+
+                if (isset($payment->user->email)) {
+                    $payload['email'] = $payment->user->email;
+                }
+
                 $cardholderName = $this->paymentMetaRepository->values($payment, 'cardholder_name')->fetchField('value');
                 if ($cardholderName) {
                     $payload['name'] = $cardholderName;
