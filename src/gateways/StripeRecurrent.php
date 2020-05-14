@@ -5,8 +5,8 @@ namespace Crm\StripeModule\Gateways;
 use Crm\PaymentsModule\Gateways\RecurrentPaymentInterface;
 use Crm\PaymentsModule\RecurrentPaymentFailStop;
 use Crm\PaymentsModule\RecurrentPaymentFailTry;
+use Omnipay\Common\Exception\InvalidRequestException;
 use Stripe\ErrorObject;
-use Stripe\Exception\InvalidRequestException;
 use Stripe\PaymentIntent;
 
 class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterface
@@ -29,7 +29,7 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
         $this->processCheckout($payment, 'off_session');
     }
 
-    public function charge($payment, $token)
+    public function charge($payment, $token): string
     {
         $this->initialize();
 
@@ -56,6 +56,8 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
             }
             throw new RecurrentPaymentFailTry();
         }
+
+        return self::CHARGE_OK;
     }
 
     /**
