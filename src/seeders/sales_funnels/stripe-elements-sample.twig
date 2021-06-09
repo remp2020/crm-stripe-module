@@ -173,9 +173,9 @@
         function processStripe(form) {
             var paymentMethodIdField = $('#stripePaymentMethodId');
             var cardholderName = $('#cardholder-name');
-            var selectedGateway = $('input[name=payment_gateway]').val();
+            var selectedGateway = $('input[name=payment_gateway]:checked').val();
 
-            if (selectedGateway === 'stripe') {
+            if (selectedGateway === 'stripe' || selectedGateway === 'stripe_recurrent') {
                 stripe.createPaymentMethod('card', cardElement, {
                     billing_details: {name: cardholderName.value }
                 }).then(function(result) {
@@ -186,30 +186,6 @@
                         form.submit();
                     }
                 });
-                return false;
-            }
-
-            if (selectedGateway === 'stripe_recurrent') {
-                $.post('/api/v1/stripe/setup-intent', function($data) {
-                    stripe.confirmCardSetup(
-                        $data['client_secret'],
-                        {
-                            payment_method: {
-                                card: cardElement,
-                                billing_details: {
-                                    name: cardholderName.value,
-                                },
-                            }
-                        },
-                    ).then(function(result) {
-                        if (result.error) {
-                            alert(result.error.message);
-                        } else {
-                            paymentMethodIdField.val(result.setupIntent.payment_method);
-                            form.submit();
-                        }
-                    });
-                }, 'json');
                 return false;
             }
         }

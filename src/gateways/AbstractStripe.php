@@ -64,9 +64,13 @@ class AbstractStripe extends GatewayAbstract
         $lineItems = [];
         foreach ($payment->related('payment_items') as $paymentItem) {
             $lineItems[] = [
-                'name' => $paymentItem->name,
-                'amount' => $this->calculateStripeAmount($paymentItem->amount * $paymentItem->count, $this->applicationConfig->get('currency')),
-                'currency' => $this->applicationConfig->get('currency'),
+                'price_data' => [
+                    'unit_amount' => $this->calculateStripeAmount($paymentItem->amount, $this->applicationConfig->get('currency')),
+                    'currency' => $this->applicationConfig->get('currency'),
+                    'product_data' => [
+                        'name' => $paymentItem->name,
+                    ],
+                ],
                 'quantity' => $paymentItem->count,
             ];
         }
