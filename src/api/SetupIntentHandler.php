@@ -19,6 +19,7 @@ class SetupIntentHandler extends ApiHandler
 
     public function params()
     {
+        return [];
     }
 
     public function handle(ApiAuthorizationInterface $authorization)
