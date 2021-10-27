@@ -12,7 +12,7 @@ use Money\Number;
 use Money\Parser\DecimalMoneyParser;
 use Nette\Application\LinkGenerator;
 use Nette\Http\Response;
-use Nette\Localization\ITranslator;
+use Nette\Localization\Translator;
 use Stripe\PaymentIntent;
 
 class AbstractStripe extends GatewayAbstract
@@ -30,7 +30,7 @@ class AbstractStripe extends GatewayAbstract
         LinkGenerator $linkGenerator,
         ApplicationConfig $applicationConfig,
         Response $httpResponse,
-        ITranslator $translator,
+        Translator $translator,
         PaymentMetaRepository $paymentMetaRepository,
         UserMetaRepository $userMetaRepository
     ) {
