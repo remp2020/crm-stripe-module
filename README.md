@@ -146,3 +146,60 @@ $(form).submit(function() {
 Stripe Module also seeded [funnel example with Stripe Elements usage](./src/seeders/sales_funnels/stripe-elements-sample.twig). You can find it in CRM Admin - Sales Funnels - stripe-elements-sample. To make it work, search for `-- INCLUDE YOUR PUBLISHABLE KEY HERE --` and replace it with the *Stripe publishable key* available at your Stripe Dashboard.
 
 ![Stripe Elements 3D secure](./docs/stripe_elements_3dsecure.gif)
+
+
+### Wallet payments (ApplePay/GooglePay) - Stripe Payment Request Button
+
+For using ApplePay or GooglePlay you have to use StripeWallet payment gateway.
+Configuration in CRM is the same as with *Stripe Elements*, but you have to setup one more config - _Stripe Display Name_. This text will be used as a label for TOTAL about in the native payment window.
+
+This payment gateway handles ApplePay and GooglePay via the exact implementation where Stripe shows the correct payment button in the end.
+
+**RECOMMENDATION**: In the sales funnel, please use javascript from documentation and enable/disable this payment method based on client browser support. It doesn't make sense to show the customer ApplePay/GooglePay as a valid payment option if it is unavailable. You can use javascript from official documentation - ![Stripe Payment Request Button](https://stripe.com/docs/stripe-js/elements/payment-request-button)
+
+It can looks like this:
+
+```js
+var stripe = Stripe("you-public-key", {
+    apiVersion: "2020-08-27",
+});
+
+var paymentRequest = stripe.paymentRequest({
+    country: "SK",
+    currency: "eur",
+    total: {
+        label: "something",
+        amount: 100, // 1 eur is OK right now
+    },
+});
+
+const elements = stripe.elements();
+const prButton = elements.create('paymentRequestButton', {
+    paymentRequest: paymentRequest,
+});
+
+// Check the availability of the Payment Request API first.
+paymentRequest.canMakePayment().then(function(result) {
+    if (result) {
+        if (result.applePay == true) {
+            // applePay is available
+            // you can unhide payment method
+        } else if (result.googlePay == true) {
+            // googlePay is available
+            // you can unhide payment method
+        }
+    } else {
+        // no wallet payment method is available
+        // you shoud hide payment methods here, but i recommend to keep it hidden by default
+    }
+});
+```
+
+#### Known limitation:
+
+1. You have to copy your stipe public key to each sale funnel where you would like to check the support of wallet payment options.
+2. We are not support shipping addresses from wallets. It is possible to get it, and it will be nice to use it for print subscriptions.
+3. Same with email - it is possible to get email of the customer from wallet payment
+4. We are not supporting recurrent payments - [maybe it is possible](https://support.stripe.com/questions/using-apple-pay-for-recurring-payments)
+5. It would be nice to integrate the whole payment button inside the sales funnel window. We will not need one more step, which is right now not so great.
+6. Support for EshopModule - not tested yet, and we have to introduce some tweaks to make it real.

@@ -55,5 +55,15 @@ class ConfigsSeeder implements ISeeder
             '',
             $sorting++
         );
+        $this->addConfig(
+            $output,
+            $category,
+            'stripe_wallet_display_name',
+            ApplicationConfig::TYPE_STRING,
+            'stripe.config.display_name.name',
+            'stripe.config.display_name.description',
+            null,
+            $sorting++
+        );
     }
 }

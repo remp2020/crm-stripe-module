@@ -9,8 +9,15 @@ services:
 	- Crm\StripeModule\Seeders\SalesFunnelsSeeder
 	- Crm\StripeModule\Gateways\Stripe
 	- Crm\StripeModule\Gateways\StripeRecurrent
+	- Crm\StripeModule\Gateways\StripeWallet
+	- Crm\StripeModule\Models\StripeWalletClient
+
+	paymentCompleteRedirect:
+		setup:
+			- registerRedirectResolver(Crm\StripeModule\Models\RedirectResolver(), 800)
 
 	gatewayFactory:
 		setup:
 			- registerGateway(stripe, Crm\StripeModule\Gateways\Stripe)
 			- registerGateway(stripe_recurrent, Crm\StripeModule\Gateways\StripeRecurrent)
+			- registerGateway(stripe_wallet, Crm\StripeModule\Gateways\StripeWallet)

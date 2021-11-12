@@ -5,3 +5,15 @@ config:
     secret:
         name: "Stripe secret key"
         description: 'Privátní klíč dostupný na <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (napr. sk_test_asdfASDFasdf1234ASDF1234asdf0000DD)'
+    display_name:
+        name: "Stripe názov obchodníka"
+        description: "Názov služby v platobnom okne pri platbe z peňaženky"
+
+frontend:
+    default:
+        title: Zde můžete dokončit vaši platbu
+        intro: Pokračujte stisknutím následujícího tlačítka
+        loading: Inicializuji platební bránu. Počkejte vteřinu.
+        error: "Chyba. Vaša platba nebola spracovaná. Skúste to prosím znova."
+        not_available: "Žádná platební brána není ve vašem prohlížeči podporována nebo není aktivní."
+        previous_payment_failed: "Vaše předchozí platba nebyla úspěšná. Prosím, zkuste to znovu."

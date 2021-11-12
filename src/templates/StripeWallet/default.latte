@@ -1,0 +1,111 @@
+{block #title}{_stripe.frontend.default.title}{/block}
+
+{block #content}
+
+<div class="page-header">
+    <h1>{_stripe.frontend.default.title}</h1>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<div class="row">
+
+    <div class="col-md-12">
+        <p id="introText" class="hide">{_stripe.frontend.default.intro}</p>
+
+        <div id="payment-request-loading" class="alert alert-info">
+            <p>{_stripe.frontend.default.loading}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="col-md-3">
+        <div id="payment-request-button">
+            <!-- A Stripe Element will be inserted here. -->
+        </div>
+    </div>
+
+    <div id="payment-request-alert" class="alert alert-warning hide">
+        <p>{_stripe.frontend.default.error}</p>
+    </div>
+</div>
+
+<script>
+    var stripe = Stripe({$stripePublisableKey}, {
+        apiVersion: "2020-08-27",
+    });
+
+    var paymentRequest = stripe.paymentRequest({
+        country: {$countryCode},
+        currency: {$currencyCode|lower},
+        total: {
+            label: {$displayName},
+            amount: {$payment->amount * 100},
+        },
+        displayItems: {$displayItems},
+        customer: {$payment->user_id},
+        description: {$displayName},
+    });
+
+    const elements = stripe.elements();
+    const prButton = elements.create('paymentRequestButton', {
+        paymentRequest: paymentRequest,
+        style: {
+            paymentRequestButton: {
+                type: 'buy',
+            }
+        }
+    });
+
+    // Check the availability of the Payment Request API first.
+    paymentRequest.canMakePayment().then(function(result) {
+        if (result) {
+            $('#payment-request-loading').addClass('hide');
+            $('#introText').removeClass('hide');
+            prButton.mount('#payment-request-button');
+        } else {
+            document.getElementById('payment-request-button').style.display = 'none';
+            document.getElementById('payment-request-alert').classList.remove("hide");
+        }
+    });
+
+    paymentRequest.on('paymentmethod', function(ev) {
+        // Confirm the PaymentIntent without handling potential next actions (yet).
+        stripe.confirmCardPayment(
+                {$paymentIntentSecret},
+            { payment_method: ev.paymentMethod.id },
+            { handleActions: false }
+        ).then(function(confirmResult) {
+            if (confirmResult.error) {
+                // Report to the browser that the payment failed, prompting it to
+                // re-show the payment interface, or show an error message and close
+                // the payment interface.
+                alert({_stripe.frontend.default.error});
+                ev.complete('fail');
+            } else {
+                // Report to the browser that the confirmation was successful, prompting
+                // it to close the browser payment method collection interface.
+                ev.complete('success');
+                // Check if the PaymentIntent requires any actions and if so let Stripe.js
+                // handle the flow. If using an API version older than "2019-02-11"
+                // instead check for: `paymentIntent.status === "requires_source_action"`.
+                if (confirmResult.paymentIntent.status === "requires_action") {
+                    // Let Stripe.js handle the rest of the payment flow.
+                    stripe.confirmCardPayment(clientSecret).then(function(result) {
+                        if (result.error) {
+                            // The payment failed -- ask your customer for a new payment method.
+                            alert({_stripe.frontend.default.error});
+                        } else {
+                            // The payment has succeeded.
+                            window.location.href= {$confirmUrl}
+                        }
+                    });
+                } else {
+                    // The payment has succeeded.
+                    window.location.href= {$confirmUrl}
+                }
+            }
+        });
+    });
+</script>
