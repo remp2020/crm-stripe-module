@@ -150,14 +150,14 @@ Stripe Module also seeded [funnel example with Stripe Elements usage](./src/seed
 
 ### Wallet payments (ApplePay/GooglePay) - Stripe Payment Request Button
 
-For using ApplePay or GooglePlay you have to use StripeWallet payment gateway.
+For using ApplePay or GooglePay you have to use StripeWallet payment gateway.
 Configuration in CRM is the same as with *Stripe Elements*, but you have to setup one more config - _Stripe Display Name_. This text will be used as a label for TOTAL about in the native payment window.
 
 This payment gateway handles ApplePay and GooglePay via the exact implementation where Stripe shows the correct payment button in the end.
 
 **RECOMMENDATION**: In the sales funnel, please use javascript from documentation and enable/disable this payment method based on client browser support. It doesn't make sense to show the customer ApplePay/GooglePay as a valid payment option if it is unavailable. You can use javascript from official documentation - ![Stripe Payment Request Button](https://stripe.com/docs/stripe-js/elements/payment-request-button)
 
-It can looks like this:
+It looks like this:
 
 ```js
 var stripe = Stripe("you-public-key", {
@@ -197,9 +197,9 @@ paymentRequest.canMakePayment().then(function(result) {
 
 #### Known limitation:
 
-1. You have to copy your stipe public key to each sale funnel where you would like to check the support of wallet payment options.
-2. We are not support shipping addresses from wallets. It is possible to get it, and it will be nice to use it for print subscriptions.
-3. Same with email - it is possible to get email of the customer from wallet payment
-4. We are not supporting recurrent payments - [maybe it is possible](https://support.stripe.com/questions/using-apple-pay-for-recurring-payments)
-5. It would be nice to integrate the whole payment button inside the sales funnel window. We will not need one more step, which is right now not so great.
-6. Support for EshopModule - not tested yet, and we have to introduce some tweaks to make it real.
+1. You have to copy your stripe public key to each sale funnel where you would like to check the support of wallet payment options.
+2. We don't support:
+   - Importing shipping addresses from wallets (but it's possible).
+   - Importing email of the customer from wallets (but it's possible).
+   - Recurrent payments ([but it looks possible](https://support.stripe.com/questions/using-apple-pay-for-recurring-payments)).
+   - Use of StripeWallet in our CRM ProductsModule (eshop).

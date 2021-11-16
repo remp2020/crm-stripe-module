@@ -11,9 +11,8 @@ config:
 
 frontend:
     default:
-        title: Here you can finish your payment
-        intro: Please press the following button to continue
-        loading: Initializing your payment options. Wait a second
+        title: "Here you can finish your payment"
+        intro: "Please press the following button to continue"
+        loading: "Initializing your payment options. Wait a second"
         error: "Error. Your payment has not been processed. Please try again."
-        not_available: "This payment is not supported in your browser or is not currently enabled."
-        previous_payment_failed: Your previous payment wasn't successfull. Please try again.
+        previous_payment_failed: "Your previous payment wasn't successfull. Please try again."

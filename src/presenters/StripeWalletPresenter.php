@@ -39,7 +39,7 @@ class StripeWalletPresenter extends FrontendPresenter
             'countryCode' => $this->countriesRepository->defaultCountry()->iso_code,
             'currencyCode' => $this->applicationConfig->get('currency'),
             'paymentIntentSecret' => $intent->client_secret,
-            'stripePublisableKey' => $this->applicationConfig->get('stripe_publishable'),
+            'stripePublishableKey' => $this->applicationConfig->get('stripe_publishable'),
             'payment' => $payment,
             'displayName' => $this->applicationConfig->get('stripe_wallet_display_name'),
             'displayItems' => $displayItems,
@@ -49,7 +49,7 @@ class StripeWalletPresenter extends FrontendPresenter
 
     private function createIntent(ActiveRow $payment, string $paymentType): PaymentIntent
     {
-        $intent = $this->stripeWalletClient->createIntent($payment, $this->applicationConfig->get('currency'));
+        $intent = $this->stripeWalletClient->createIntent($payment);
         $this->stripeWalletClient->linkPaymentWithIntent($payment, $intent->id);
         return $intent;
     }
@@ -70,7 +70,7 @@ class StripeWalletPresenter extends FrontendPresenter
 
     public function renderConfirm(string $id, string $intent)
     {
-        $payment = $this->paymentsRepository->findByVs($id . 'xx');
+        $payment = $this->paymentsRepository->findByVs($id);
 
         if (!$payment) {
             $this->flashMessage($this->translator->translate("stripe.frontend.default.previous_payment_failed"), "alert");

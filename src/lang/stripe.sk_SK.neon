@@ -12,9 +12,8 @@ config:
 frontend:
     default:
         title: "Tu môžete dokončiť Vašu platbu"
-        intro: Prosím pre pokračovanie stlačte nasledujúce tlačidlo
-        loading: Inicializujem platobnú branu. Počkajte sekudnu.
+        intro: "Prosím pre pokračovanie stlačte nasledujúce tlačidlo"
+        loading: "Inicializujem platobnú branu. Počkajte sekundu."
         error: "Chyba. Vaša platba nebola spracovaná. Skúste to prosím znova."
-        not_available: "Žiadna platobná brána nie je vo vašom prehliadači podporovana alebo nie je aktivna."
-        previous_payment_failed: "Vaša predchádzajúca platba nebolo úspešná. Prosím, skúste to znova."
+        previous_payment_failed: "Vaša predchádzajúca platba nebola úspešná. Prosím, skúste to znova."
 

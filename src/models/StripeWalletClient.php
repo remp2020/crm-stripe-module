@@ -4,7 +4,9 @@ namespace Crm\StripeModule\Models;
 
 use Crm\ApplicationModule\Config\ApplicationConfig;
 use Crm\PaymentsModule\Repository\PaymentMetaRepository;
+use Exception;
 use Nette\Database\Table\ActiveRow;
+use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
@@ -22,33 +24,41 @@ class StripeWalletClient
         $this->paymentMetaRepository = $paymentMetaRepository;
     }
 
+    /**
+     * @throws Exception
+     */
     private function initStripe(): void
     {
         if (!$this->loaded) {
-            Stripe::setApiKey($this->applicationConfig->get('stripe_secret'));
+            $clientSecret = $this->applicationConfig->get('stripe_secret');
+            if (!$clientSecret) {
+                throw new Exception('Unable to initialize stripe, secret is missing from CRM Admin configuration');
+            }
+            Stripe::setApiKey($clientSecret);
             $this->loaded = true;
         }
     }
 
-    public function createIntent(ActiveRow $payment, string $currency): PaymentIntent
+    /**
+     * @throws Exception
+     */
+    public function createIntent(ActiveRow $payment): PaymentIntent
     {
         $this->initStripe();
 
-        $intent = PaymentIntent::create([
+        return PaymentIntent::create([
             'amount' => $payment->amount * 100,
-            'currency' => $currency,
+            'currency' => $this->applicationConfig->get('currency'),
             'metadata' => [
                 "source" => "crm",
                 "subscription_type_id" => $payment->subscription_type_id,
-                "subscription_type" => $payment->subscription_type_id ? $payment->subscription_type->code : null,
+                "subscription_type" => $payment->subscription_type_id ?? null,
                 "user_id" => $payment->user_id,
                 "payment_id" => $payment->id,
                 "vs" => $payment->variable_symbol,
-                "subsciption_type_length" => $payment->subscription_type_id ? $payment->subscription_type->length : null,
+                "subscription_type_length" => $payment->subscription_type_id ?? null,
             ],
         ]);
-
-        return $intent;
     }
 
     public function linkPaymentWithIntent(ActiveRow $payment, string $intentId): void
@@ -63,15 +73,23 @@ class StripeWalletClient
         return $meta && $meta->value === $intentId;
     }
 
+
+    /**
+     * @throws Exception
+     */
     public function loadIntent(string $id): ?PaymentIntent
     {
         $this->initStripe();
         return PaymentIntent::retrieve($id);
     }
 
+    /**
+     * @throws ApiErrorException
+     * @throws Exception
+     */
     public function isIntentPaid(string $id): bool
     {
         $intent = $this->loadIntent($id);
-        return $intent->status == PaymentIntent::STATUS_SUCCEEDED;
+        return $intent->status === PaymentIntent::STATUS_SUCCEEDED;
     }
 }
