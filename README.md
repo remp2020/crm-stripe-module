@@ -151,7 +151,7 @@ Stripe Module also seeded [funnel example with Stripe Elements usage](./src/seed
 ### Wallet payments (ApplePay/GooglePay) - Stripe Payment Request Button
 
 For using ApplePay or GooglePay you have to use StripeWallet payment gateway.
-Configuration in CRM is the same as with *Stripe Elements*, but you have to setup one more config - _Stripe Display Name_. This text will be used as a label for TOTAL about in the native payment window.
+Configuration in CRM is the same as with *Stripe Elements*, but you can setup one more config - _Stripe Display Name_. This text is used as name of merchant, used as label for total amount in payment window.
 
 This payment gateway handles ApplePay and GooglePay via the exact implementation where Stripe shows the correct payment button in the end.
 
