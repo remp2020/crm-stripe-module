@@ -52,11 +52,10 @@ class StripeWalletClient
             'metadata' => [
                 "source" => "crm",
                 "subscription_type_id" => $payment->subscription_type_id,
-                "subscription_type" => $payment->subscription_type_id ?? null,
+                "subscription_type_length" => $payment->subscription_type_id ?? null,
                 "user_id" => $payment->user_id,
                 "payment_id" => $payment->id,
                 "vs" => $payment->variable_symbol,
-                "subscription_type_length" => $payment->subscription_type_id ?? null,
             ],
         ]);
     }

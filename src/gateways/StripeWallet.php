@@ -19,6 +19,7 @@ class StripeWallet extends GatewayAbstract
             'VS' => $payment->variable_symbol,
         ]);
         $this->httpResponse->redirect($url);
+        exit();
     }
 
     public function complete($payment): ?bool
