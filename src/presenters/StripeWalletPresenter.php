@@ -31,7 +31,7 @@ class StripeWalletPresenter extends FrontendPresenter
         foreach ($payment->related('payment_items') as $item) {
             $displayItems[] = [
                 "label" => $item->name,
-                "amount" => $item->amount * 100,
+                "amount" => intval($item->amount * 100),
             ];
         }
 
@@ -41,6 +41,7 @@ class StripeWalletPresenter extends FrontendPresenter
             'paymentIntentSecret' => $intent->client_secret,
             'stripePublishableKey' => $this->applicationConfig->get('stripe_publishable'),
             'payment' => $payment,
+            'totalAmount' => intval($payment->amount * 100),
             'displayName' => $this->applicationConfig->get('stripe_wallet_display_name'),
             'displayItems' => $displayItems,
             'confirmUrl' => $this->link("confirm", $payment->variable_symbol, $intent->id),

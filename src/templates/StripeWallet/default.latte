@@ -41,7 +41,7 @@
         currency: {$currencyCode|lower},
         total: {
             label: {$displayName},
-            amount: {$payment->amount * 100},
+            amount: {$totalAmount},
         },
         displayItems: {$displayItems},
         customer: {$payment->user_id},

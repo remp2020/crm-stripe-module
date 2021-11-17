@@ -47,7 +47,7 @@ class StripeWalletClient
         $this->initStripe();
 
         return PaymentIntent::create([
-            'amount' => $payment->amount * 100,
+            'amount' => intval($payment->amount * 100),
             'currency' => $this->applicationConfig->get('currency'),
             'metadata' => [
                 "source" => "crm",
