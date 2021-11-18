@@ -19,8 +19,16 @@ class StripeWalletPresenter extends FrontendPresenter
     /** @var CountriesRepository @inject */
     public CountriesRepository $countriesRepository;
 
-    /** @var StripeWalletClient @inject */
     public StripeWalletClient $stripeWalletClient;
+
+    public function startup()
+    {
+        parent::startup();
+
+        // Requiring this dependency on the fly, since we scan this presenter even when module is not enabled
+        // and attempt to pass it in construct fails because service would not be registered on some installations.
+        $this->stripeWalletClient = $this->context->getByType(StripeWalletClient::class);
+    }
 
     public function renderDefault($id)
     {
