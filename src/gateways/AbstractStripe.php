@@ -17,7 +17,7 @@ use Stripe\PaymentIntent;
 
 class AbstractStripe extends GatewayAbstract
 {
-    const GATEWAY_CODE = 'stripe';
+    public const GATEWAY_CODE = 'stripe';
 
     /** @var PaymentIntent */
     protected $paymentIntent;

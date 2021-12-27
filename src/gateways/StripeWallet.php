@@ -6,7 +6,7 @@ use Crm\PaymentsModule\Gateways\GatewayAbstract;
 
 class StripeWallet extends GatewayAbstract
 {
-    const GATEWAY_CODE = 'stripe_wallet';
+    public const GATEWAY_CODE = 'stripe_wallet';
 
     protected function initialize()
     {

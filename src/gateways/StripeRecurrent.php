@@ -11,7 +11,7 @@ use Stripe\PaymentIntent;
 
 class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterface
 {
-    const GATEWAY_CODE = 'stripe_recurrent';
+    public const GATEWAY_CODE = 'stripe_recurrent';
 
     /** @var ErrorObject */
     private $paymentIntentError;
