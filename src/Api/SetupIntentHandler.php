@@ -17,7 +17,7 @@ class SetupIntentHandler extends ApiHandler
         $this->stripe = $stripe;
     }
 
-    public function params()
+    public function params(): array
     {
         return [];
     }
