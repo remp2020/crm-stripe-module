@@ -9,14 +9,10 @@ use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
 use Crm\UsersModule\Repository\CountriesRepository;
 use Nette\Application\BadRequestException;
-use Nette\DI\Container;
 use Stripe\PaymentIntent;
 
 class StripeWalletPresenter extends FrontendPresenter
 {
-    /** @var @inject */
-    public Container $container;
-
     /** @var PaymentsRepository @inject */
     public PaymentsRepository $paymentsRepository;
 
