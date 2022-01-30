@@ -40,7 +40,7 @@ Stripe Checkout is the most secure and robust scenario of processing payments wi
 
 We recommend using this scenario as Stripe optimizes the page for various devices. Stripe Checkout is the default flow when this module is enabled.
 
-If you use [remp2020/crm-salesfunnel-module](https://github.com/remp2020/crm-salesfunnel-module), all you need to do is to enable both *Stripe* and *Stripe Recurrent* gateways in your sales funnels (CRM Admin - Sales funnels - Detail - Payment gateways). You can test the integration with our [sample funnel](https://github.com/remp2020/crm-salesfunnel-module/blob/master/src/seeders/sales_funnels/sample.twig), which will display the new gateways right away after you enable them.
+If you use [remp2020/crm-salesfunnel-module](https://github.com/remp2020/crm-salesfunnel-module), all you need to do is to enable both *Stripe* and *Stripe Recurrent* gateways in your sales funnels (CRM Admin - Sales funnels - Detail - Payment gateways). You can test the integration with our [sample funnel](https://github.com/remp2020/crm-salesfunnel-module/blob/master/src/Seeders/sales_funnels/sample.twig), which will display the new gateways right away after you enable them.
 
 ![Stripe Checkout](./docs/stripe_checkout.gif)
 
@@ -143,7 +143,7 @@ $(form).submit(function() {
     processStripe();
 });
 ```
-Stripe Module also seeded [funnel example with Stripe Elements usage](./src/seeders/sales_funnels/stripe-elements-sample.twig). You can find it in CRM Admin - Sales Funnels - stripe-elements-sample. To make it work, search for `-- INCLUDE YOUR PUBLISHABLE KEY HERE --` and replace it with the *Stripe publishable key* available at your Stripe Dashboard.
+Stripe Module also seeded [funnel example with Stripe Elements usage](./src/Seeders/sales_funnels/stripe-elements-sample.twig). You can find it in CRM Admin - Sales Funnels - stripe-elements-sample. To make it work, search for `-- INCLUDE YOUR PUBLISHABLE KEY HERE --` and replace it with the *Stripe publishable key* available at your Stripe Dashboard.
 
 ![Stripe Elements 3D secure](./docs/stripe_elements_3dsecure.gif)
 
