@@ -16,4 +16,3 @@ frontend:
 		loading: "Inicializujem platobnú branu. Počkajte sekundu."
 		error: "Chyba. Vaša platba nebola spracovaná. Skúste to prosím znova."
 		previous_payment_failed: "Vaša predchádzajúca platba nebola úspešná. Prosím, skúste to znova."
-
