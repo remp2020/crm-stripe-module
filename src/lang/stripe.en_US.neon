@@ -1,18 +1,18 @@
 config:
-	publishable:
-		name: "Stripe publishable key"
-		description: 'Publishable key available at <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (e.g. <code>pk_test_asdfASDFasdf1234ASDF1234asdf0000DD</code>)'
-	secret:
-		name: "Stripe secret key"
-		description: 'Secret key available at <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (e.g. <code>sk_test_asdfASDFasdf1234ASDF1234asdf0000DD</code>)'
-	display_name:
-		name: "Stripe display name"
-		description: "This text is used as name of merchant, used as label for total amount in payment window."
+    publishable:
+        name: "Stripe publishable key"
+        description: 'Publishable key available at <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (e.g. <code>pk_test_asdfASDFasdf1234ASDF1234asdf0000DD</code>)'
+    secret:
+        name: "Stripe secret key"
+        description: 'Secret key available at <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (e.g. <code>sk_test_asdfASDFasdf1234ASDF1234asdf0000DD</code>)'
+    display_name:
+        name: "Stripe display name"
+        description: "This text is used as name of merchant, used as label for total amount in payment window."
 
 frontend:
-	default:
-		title: "Here you can finish your payment"
-		intro: "Please press the following button to continue"
-		loading: "Initializing your payment options. Wait a second"
-		error: "Error. Your payment has not been processed. Please try again."
-		previous_payment_failed: "Your previous payment wasn't successfull. Please try again."
+    default:
+        title: "Here you can finish your payment"
+        intro: "Please press the following button to continue"
+        loading: "Initializing your payment options. Wait a second"
+        error: "Error. Your payment has not been processed. Please try again."
+        previous_payment_failed: "Your previous payment wasn't successfull. Please try again."

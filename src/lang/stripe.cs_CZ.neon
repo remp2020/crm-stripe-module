@@ -1,18 +1,18 @@
 config:
-	publishable:
-		name: "Stripe publishable key"
-		description: 'Veřejný klíč dostupný na <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (napr. pk_test_asdfASDFasdf1234ASDF1234asdf0000DD)'
-	secret:
-		name: "Stripe secret key"
-		description: 'Privátní klíč dostupný na <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (napr. sk_test_asdfASDFasdf1234ASDF1234asdf0000DD)'
-	display_name:
-		name: "Stripe název obchodníka"
-		description: "Název služby v platebním okně při platbě z peněženky"
+    publishable:
+        name: "Stripe publishable key"
+        description: 'Veřejný klíč dostupný na <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (napr. pk_test_asdfASDFasdf1234ASDF1234asdf0000DD)'
+    secret:
+        name: "Stripe secret key"
+        description: 'Privátní klíč dostupný na <a href="https://dashboard.stripe.com/test/apikeys">Stripe Dashboard</a> (napr. sk_test_asdfASDFasdf1234ASDF1234asdf0000DD)'
+    display_name:
+        name: "Stripe název obchodníka"
+        description: "Název služby v platebním okně při platbě z peněženky"
 
 frontend:
-	default:
-		title: "Zde můžete dokončit vaši platbu"
-		intro: "Pokračujte stisknutím následujícího tlačítka"
-		loading: "Inicializuji platební bránu. Počkejte vteřinu."
-		error: "Chyba. Vaše platba nebyla zpracována. Zkuste to prosím znovu."
-		previous_payment_failed: "Vaše předchozí platba nebyla úspěšná. Prosím, zkuste to znovu."
+    default:
+        title: "Zde můžete dokončit vaši platbu"
+        intro: "Pokračujte stisknutím následujícího tlačítka"
+        loading: "Inicializuji platební bránu. Počkejte vteřinu."
+        error: "Chyba. Vaše platba nebyla zpracována. Zkuste to prosím znovu."
+        previous_payment_failed: "Vaše předchozí platba nebyla úspěšná. Prosím, zkuste to znovu."
