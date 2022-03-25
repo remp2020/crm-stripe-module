@@ -3,10 +3,10 @@
 namespace Crm\StripeModule\Api;
 
 use Crm\ApiModule\Api\ApiHandler;
-use Crm\ApiModule\Api\JsonResponse;
-use Crm\ApiModule\Response\ApiResponseInterface;
 use Crm\StripeModule\Gateways\StripeRecurrent;
 use Nette\Http\Response;
+use Tomaj\NetteApi\Response\JsonApiResponse;
+use Tomaj\NetteApi\Response\ResponseInterface;
 
 class SetupIntentHandler extends ApiHandler
 {
@@ -22,15 +22,14 @@ class SetupIntentHandler extends ApiHandler
         return [];
     }
 
-    public function handle(array $params): ApiResponseInterface
+    public function handle(array $params): ResponseInterface
     {
         $intent = $this->stripe->createSetupIntent();
 
-        $response = new JsonResponse([
+        $response = new JsonApiResponse(Response::S200_OK, [
             'id' => $intent->id,
             'client_secret' => $intent->client_secret,
         ]);
-        $response->setHttpCode(Response::S200_OK);
         return $response;
     }
 }
