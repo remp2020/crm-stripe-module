@@ -127,7 +127,7 @@ class AbstractStripe extends GatewayAbstract
                     $payload['email'] = $payment->user->email;
                 }
 
-                $cardholderName = $this->paymentMetaRepository->values($payment, 'cardholder_name')->fetchField('value');
+                $cardholderName = $this->paymentMetaRepository->values($payment, 'cardholder_name')->fetch()?->value;
                 if ($cardholderName) {
                     $payload['name'] = $cardholderName;
                 }
@@ -189,7 +189,7 @@ class AbstractStripe extends GatewayAbstract
     {
         $this->initialize();
 
-        $paymentIntentId = $this->paymentMetaRepository->values($payment, 'payment_intent_id')->fetchField('value');
+        $paymentIntentId = $this->paymentMetaRepository->values($payment, 'payment_intent_id')->fetch()?->value;
         if (!$paymentIntentId) {
             return false;
         }
