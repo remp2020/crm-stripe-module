@@ -6,7 +6,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.0",
-    "stripe/stripe-php": "7.22"
+    "stripe/stripe-php": "v7.105.0"
   },
   "minimum-stability": "dev",
   "autoload": {

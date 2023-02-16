@@ -5,6 +5,7 @@ namespace Crm\StripeModule\Gateways;
 use Crm\PaymentsModule\Gateways\RecurrentPaymentInterface;
 use Crm\PaymentsModule\RecurrentPaymentFailStop;
 use Crm\PaymentsModule\RecurrentPaymentFailTry;
+use Money\Currency;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Stripe\ErrorObject;
 use Stripe\PaymentIntent;
@@ -36,9 +37,10 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
         $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
 
         try {
+            $currency = new Currency($this->applicationConfig->get('currency'));
             $this->paymentIntent = PaymentIntent::create([
-                'amount' => $this->calculateStripeAmount($payment->amount, $this->applicationConfig->get('currency')),
-                'currency' => $this->applicationConfig->get('currency'),
+                'amount' => $this->calculateStripeAmount($payment->amount, $currency),
+                'currency' => $currency->getCode(),
                 'customer' => $stripeCustomerId,
                 'payment_method' => $token,
                 'confirm' => true,

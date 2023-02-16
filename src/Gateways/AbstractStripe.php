@@ -8,6 +8,7 @@ use Crm\PaymentsModule\Gateways\GatewayAbstract;
 use Crm\PaymentsModule\Repository\PaymentMetaRepository;
 use Crm\UsersModule\Repository\UserMetaRepository;
 use Money\Currencies\ISOCurrencies;
+use Money\Currency;
 use Money\Number;
 use Money\Parser\DecimalMoneyParser;
 use Nette\Application\LinkGenerator;
@@ -62,11 +63,12 @@ class AbstractStripe extends GatewayAbstract
         ]);
 
         $lineItems = [];
+        $currency = new Currency($this->applicationConfig->get('currency'));
         foreach ($payment->related('payment_items') as $paymentItem) {
             $lineItems[] = [
                 'price_data' => [
-                    'unit_amount' => $this->calculateStripeAmount($paymentItem->amount, $this->applicationConfig->get('currency')),
-                    'currency' => $this->applicationConfig->get('currency'),
+                    'unit_amount' => $this->calculateStripeAmount($paymentItem->amount, $currency),
+                    'currency' => $currency->getCode(),
                     'product_data' => [
                         'name' => $paymentItem->name,
                     ],
@@ -137,9 +139,10 @@ class AbstractStripe extends GatewayAbstract
             }
 
             // create payment intent instance for charging
+            $currency = new Currency($this->applicationConfig->get('currency'));
             $this->paymentIntent = PaymentIntent::create([
-                'amount' => $this->calculateStripeAmount($payment->amount, $this->applicationConfig->get('currency')),
-                'currency' => $this->applicationConfig->get('currency'),
+                'amount' => $this->calculateStripeAmount($payment->amount, $currency),
+                'currency' => $currency->getCode(),
                 'customer' => $stripeCustomerId,
                 'payment_method' => $paymentMethodId,
                 'setup_future_usage' => $futureUsage,
