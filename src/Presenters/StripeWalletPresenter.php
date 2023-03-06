@@ -43,17 +43,15 @@ class StripeWalletPresenter extends FrontendPresenter
             ];
         }
 
-        $this->template->setParameters([
-            'countryCode' => $this->countriesRepository->defaultCountry()->iso_code,
-            'currencyCode' => $this->applicationConfig->get('currency'),
-            'paymentIntentSecret' => $intent->client_secret,
-            'stripePublishableKey' => $this->applicationConfig->get('stripe_publishable'),
-            'payment' => $payment,
-            'totalAmount' => intval($payment->amount * 100),
-            'displayName' => $this->applicationConfig->get('stripe_wallet_display_name'),
-            'displayItems' => $displayItems,
-            'confirmUrl' => $this->link("confirm", $payment->variable_symbol, $intent->id),
-        ]);
+        $this->template->countryCode = $this->countriesRepository->defaultCountry()->iso_code;
+        $this->template->currencyCode = $this->applicationConfig->get('currency');
+        $this->template->paymentIntentSecret = $intent->client_secret;
+        $this->template->stripePublishableKey = $this->applicationConfig->get('stripe_publishable');
+        $this->template->payment = $payment;
+        $this->template->totalAmount = (int) $payment->amount * 100;
+        $this->template->displayName = $this->applicationConfig->get('stripe_wallet_display_name');
+        $this->template->displayItems = $displayItems;
+        $this->template->confirmUrl = $this->link("confirm", $payment->variable_symbol, $intent->id);
     }
 
     private function createIntent(ActiveRow $payment, string $paymentType): PaymentIntent
