@@ -215,7 +215,7 @@ class AbstractStripe extends GatewayAbstract
         return \Stripe\SetupIntent::create();
     }
 
-    protected function calculateStripeAmount($amount, $currency): int
+    protected function calculateStripeAmount($amount, $currency): string
     {
         $moneyParser = new DecimalMoneyParser(new ISOCurrencies());
         $number = Number::fromFloat($amount);
