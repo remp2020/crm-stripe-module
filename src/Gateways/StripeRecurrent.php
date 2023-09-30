@@ -97,7 +97,7 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
     /**
      * @inheritDoc
      */
-    public function getResultCode()
+    public function getResultCode(): ?string
     {
         if (isset($this->paymentIntent->last_payment_error['code'])) {
             return sprintf('%s: %s', $this->paymentIntent->last_payment_error['code'], $this->paymentIntent->last_payment_error['decline_code']);
@@ -111,7 +111,7 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
     /**
      * @inheritDoc
      */
-    public function getResultMessage()
+    public function getResultMessage(): ?string
     {
         if (isset($this->paymentIntent->last_payment_error['message'])) {
             return $this->paymentIntent->last_payment_error['message'];
