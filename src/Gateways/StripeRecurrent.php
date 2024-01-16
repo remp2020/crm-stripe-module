@@ -8,6 +8,7 @@ use Crm\PaymentsModule\RecurrentPaymentFailTry;
 use Money\Currency;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Stripe\ErrorObject;
+use Stripe\Exception\CardException;
 use Stripe\PaymentIntent;
 
 class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterface
@@ -46,7 +47,7 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
                 'confirm' => true,
                 'off_session' => true,
             ]);
-        } catch (\Stripe\Exception\CardException $e) {
+        } catch (CardException $e) {
             $this->paymentIntentError = $e->getError();
             $paymentIntentId = $e->getError()->payment_intent->id;
             $this->paymentIntent = PaymentIntent::retrieve($paymentIntentId);

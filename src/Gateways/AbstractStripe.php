@@ -14,7 +14,13 @@ use Money\Parser\DecimalMoneyParser;
 use Nette\Application\LinkGenerator;
 use Nette\Http\Response;
 use Nette\Localization\Translator;
+use Stripe\Checkout\Session;
+use Stripe\Customer;
+use Stripe\Exception\CardException;
 use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
+use Stripe\SetupIntent;
+use Stripe\Stripe;
 
 class AbstractStripe extends GatewayAbstract
 {
@@ -46,7 +52,7 @@ class AbstractStripe extends GatewayAbstract
         if (!$secret) {
             throw new \Exception('Unable to initialize stripe gateway, secret is missing from CRM Admin configuration');
         }
-        \Stripe\Stripe::setApiKey($this->applicationConfig->get('stripe_secret'));
+        Stripe::setApiKey($this->applicationConfig->get('stripe_secret'));
     }
 
     public function begin($payment)
@@ -97,7 +103,7 @@ class AbstractStripe extends GatewayAbstract
             $checkoutSessionConfig['customer_email'] = $payment->user->email;
         }
 
-        $checkoutSession = \Stripe\Checkout\Session::create($checkoutSessionConfig);
+        $checkoutSession = Session::create($checkoutSessionConfig);
 
         // create payment intent
         $this->paymentIntent = PaymentIntent::retrieve($checkoutSession->payment_intent);
@@ -118,7 +124,7 @@ class AbstractStripe extends GatewayAbstract
             // attach or create stripe customer to payment method
             $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
             if ($stripeCustomerId) {
-                $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
+                $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
                 $paymentMethod->attach(['customer' => $stripeCustomerId]);
             } else {
                 $payload = [
@@ -133,7 +139,7 @@ class AbstractStripe extends GatewayAbstract
                 if ($cardholderName) {
                     $payload['name'] = $cardholderName;
                 }
-                $customer = \Stripe\Customer::create($payload);
+                $customer = Customer::create($payload);
                 $stripeCustomerId = $customer->id;
                 $this->userMetaRepository->add($payment->user, 'stripe_customer', $stripeCustomerId);
             }
@@ -153,7 +159,7 @@ class AbstractStripe extends GatewayAbstract
                 ]),
                 'confirm' => true,
             ]);
-        } catch (\Stripe\Exception\CardException $e) {
+        } catch (CardException $e) {
             if (isset($e->getError()->payment_intent)) {
                 // the confirmation part failed, let's extract errors
                 $paymentIntentId = $e->getError()->payment_intent->id;
@@ -201,7 +207,7 @@ class AbstractStripe extends GatewayAbstract
         if ($this->paymentIntent->payment_method) {
             $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
             if (!$stripeCustomerId) {
-                $paymentMethod = \Stripe\PaymentMethod::retrieve($this->paymentIntent->payment_method);
+                $paymentMethod = PaymentMethod::retrieve($this->paymentIntent->payment_method);
                 $this->userMetaRepository->add($payment->user, 'stripe_customer', $paymentMethod->customer);
             }
         }
@@ -212,7 +218,7 @@ class AbstractStripe extends GatewayAbstract
     public function createSetupIntent()
     {
         $this->initialize();
-        return \Stripe\SetupIntent::create();
+        return SetupIntent::create();
     }
 
     protected function calculateStripeAmount($amount, $currency): string
