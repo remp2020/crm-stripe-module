@@ -7,7 +7,7 @@ use Crm\ApplicationModule\Presenters\FrontendPresenter;
 use Crm\PaymentsModule\Repository\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
-use Crm\UsersModule\Repository\CountriesRepository;
+use Crm\UsersModule\Repositories\CountriesRepository;
 use Nette\Application\BadRequestException;
 use Nette\DI\Attributes\Inject;
 use Stripe\PaymentIntent;

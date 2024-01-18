@@ -6,7 +6,7 @@ use Crm\ApplicationModule\Config\ApplicationConfig;
 use Crm\PaymentsModule\GatewayFail;
 use Crm\PaymentsModule\Gateways\GatewayAbstract;
 use Crm\PaymentsModule\Repository\PaymentMetaRepository;
-use Crm\UsersModule\Repository\UserMetaRepository;
+use Crm\UsersModule\Repositories\UserMetaRepository;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Number;
