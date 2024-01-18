@@ -2,7 +2,7 @@
 
 namespace Crm\StripeModule\Gateways;
 
-use Crm\PaymentsModule\Gateways\GatewayAbstract;
+use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
 
 class StripeWallet extends GatewayAbstract
 {

@@ -4,7 +4,7 @@ namespace Crm\StripeModule\Presenters;
 
 use Crm\ApplicationModule\ActiveRow;
 use Crm\ApplicationModule\Presenters\FrontendPresenter;
-use Crm\PaymentsModule\Repository\PaymentsRepository;
+use Crm\PaymentsModule\Repositories\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
 use Crm\UsersModule\Repositories\CountriesRepository;

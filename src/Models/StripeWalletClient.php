@@ -3,7 +3,7 @@
 namespace Crm\StripeModule\Models;
 
 use Crm\ApplicationModule\Config\ApplicationConfig;
-use Crm\PaymentsModule\Repository\PaymentMetaRepository;
+use Crm\PaymentsModule\Repositories\PaymentMetaRepository;
 use Exception;
 use Nette\Database\Table\ActiveRow;
 use Stripe\Exception\ApiErrorException;

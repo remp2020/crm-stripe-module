@@ -2,7 +2,7 @@
 
 namespace Crm\StripeModule\Models;
 
-use Crm\PaymentsModule\Model\PaymentCompleteRedirectResolver;
+use Crm\PaymentsModule\Models\SuccessPageResolver\PaymentCompleteRedirectResolver;
 use Crm\StripeModule\Gateways\StripeWallet;
 use Nette\Database\Table\ActiveRow;
 

@@ -2,9 +2,9 @@
 
 namespace Crm\StripeModule\Gateways;
 
-use Crm\PaymentsModule\Gateways\RecurrentPaymentInterface;
-use Crm\PaymentsModule\RecurrentPaymentFailStop;
-use Crm\PaymentsModule\RecurrentPaymentFailTry;
+use Crm\PaymentsModule\Models\Gateways\RecurrentPaymentInterface;
+use Crm\PaymentsModule\Models\RecurrentPaymentFailStop;
+use Crm\PaymentsModule\Models\RecurrentPaymentFailTry;
 use Money\Currency;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Stripe\ErrorObject;

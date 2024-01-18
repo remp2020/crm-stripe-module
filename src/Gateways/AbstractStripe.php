@@ -3,9 +3,9 @@
 namespace Crm\StripeModule\Gateways;
 
 use Crm\ApplicationModule\Config\ApplicationConfig;
-use Crm\PaymentsModule\GatewayFail;
-use Crm\PaymentsModule\Gateways\GatewayAbstract;
-use Crm\PaymentsModule\Repository\PaymentMetaRepository;
+use Crm\PaymentsModule\Models\GatewayFail;
+use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
+use Crm\PaymentsModule\Repositories\PaymentMetaRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;

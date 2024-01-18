@@ -3,7 +3,7 @@
 namespace Crm\StripeModule\Seeders;
 
 use Crm\ApplicationModule\Seeders\ISeeder;
-use Crm\PaymentsModule\Repository\PaymentGatewaysRepository;
+use Crm\PaymentsModule\Repositories\PaymentGatewaysRepository;
 use Crm\SalesFunnelModule\Repositories\SalesFunnelsPaymentGatewaysRepository;
 use Crm\SalesFunnelModule\Repositories\SalesFunnelsRepository;
 use Crm\StripeModule\Gateways\Stripe;
