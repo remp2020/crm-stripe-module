@@ -34,15 +34,17 @@ class StripeWalletPresenter extends FrontendPresenter
     public function renderDefault($id)
     {
         $payment = $this->getPayment($id);
-        $intent = $this->stripeWalletClient->loadPaymentIntent($payment);
+        $intentId = $this->stripeWalletClient->getIntentId($payment);
 
         // check if payment is already paid
-        if ($intent && $this->stripeWalletClient->isIntentPaid($intent)) {
-            $this->redirect('confirm', $payment->id, $intent);
+        if ($intentId && $this->stripeWalletClient->isIntentPaid($intentId)) {
+            $this->redirect('confirm', $payment->id, $intentId);
         }
 
         // create intent
-        if (!$intent) {
+        if ($intentId) {
+            $intent = $this->stripeWalletClient->loadIntent($intentId);
+        } else {
             $intent = $this->createIntent($payment, $this->applicationConfig->get('currency'));
         }
 

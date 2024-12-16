@@ -72,7 +72,7 @@ class StripeWalletClient
         return $meta && $meta->value === $intentId;
     }
 
-    public function loadPaymentIntent(ActiveRow $payment): ?string
+    public function getIntentId(ActiveRow $payment): ?string
     {
         $meta = $this->paymentMetaRepository->findByPaymentAndKey($payment, 'stripe_intent');
         if ($meta) {
