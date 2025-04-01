@@ -4,6 +4,7 @@ namespace Crm\StripeModule\Presenters;
 
 use Crm\ApplicationModule\Models\Database\ActiveRow;
 use Crm\ApplicationModule\Presenters\FrontendPresenter;
+use Crm\PaymentsModule\Models\Payment\PaymentStatusEnum;
 use Crm\PaymentsModule\Repositories\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
@@ -102,7 +103,7 @@ class StripeWalletPresenter extends FrontendPresenter
             $this->redirect('default', $id);
         }
 
-        if ($payment->status !== PaymentsRepository::STATUS_FORM) {
+        if ($payment->status !== PaymentStatusEnum::Form->value) {
             $this->flashMessage($this->translator->translate("stripe.frontend.default.previous_payment_failed"), "alert");
             $this->redirect('default', $id);
         }
@@ -117,7 +118,7 @@ class StripeWalletPresenter extends FrontendPresenter
             $this->redirect('default', $id);
         }
 
-        $this->paymentsRepository->updateStatus($payment, PaymentsRepository::STATUS_PAID, true);
+        $this->paymentsRepository->updateStatus($payment, PaymentStatusEnum::Paid->value, true);
 
         $this->redirect(':SalesFunnel:SalesFunnel:success', ['variableSymbol' => $payment->variable_symbol]);
     }
