@@ -21,7 +21,7 @@ class SalesFunnelsSeeder implements ISeeder
     public function __construct(
         SalesFunnelsRepository $salesFunnelsRepository,
         PaymentGatewaysRepository $paymentGatewaysRepository,
-        SalesFunnelsPaymentGatewaysRepository $salesFunnelsPaymentGatewaysRepository
+        SalesFunnelsPaymentGatewaysRepository $salesFunnelsPaymentGatewaysRepository,
     ) {
         $this->salesFunnelsRepository = $salesFunnelsRepository;
         $this->paymentGatewaysRepository = $paymentGatewaysRepository;

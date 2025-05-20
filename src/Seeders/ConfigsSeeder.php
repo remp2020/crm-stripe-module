@@ -23,7 +23,7 @@ class ConfigsSeeder implements ISeeder
     public function __construct(
         ConfigCategoriesRepository $configCategoriesRepository,
         ConfigsRepository $configsRepository,
-        ConfigBuilder $configBuilder
+        ConfigBuilder $configBuilder,
     ) {
         $this->configCategoriesRepository = $configCategoriesRepository;
         $this->configsRepository = $configsRepository;
@@ -43,7 +43,7 @@ class ConfigsSeeder implements ISeeder
             'stripe.config.publishable.name',
             'stripe.config.publishable.description',
             '',
-            $sorting++
+            $sorting++,
         );
         $this->addConfig(
             $output,
@@ -53,7 +53,7 @@ class ConfigsSeeder implements ISeeder
             'stripe.config.secret.name',
             'stripe.config.secret.description',
             '',
-            $sorting++
+            $sorting++,
         );
         $this->addConfig(
             $output,
@@ -63,7 +63,7 @@ class ConfigsSeeder implements ISeeder
             'stripe.config.display_name.name',
             'stripe.config.display_name.description',
             null,
-            $sorting++
+            $sorting++,
         );
     }
 }

@@ -28,8 +28,8 @@ class StripeModule extends CrmModule
             new ApiRoute(
                 new ApiIdentifier('1', 'stripe', 'setup-intent'),
                 SetupIntentHandler::class,
-                NoAuthorization::class
-            )
+                NoAuthorization::class,
+            ),
         );
     }
 }

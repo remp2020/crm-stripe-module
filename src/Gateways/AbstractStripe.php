@@ -39,7 +39,7 @@ class AbstractStripe extends GatewayAbstract
         Response $httpResponse,
         Translator $translator,
         PaymentMetaRepository $paymentMetaRepository,
-        UserMetaRepository $userMetaRepository
+        UserMetaRepository $userMetaRepository,
     ) {
         parent::__construct($linkGenerator, $applicationConfig, $httpResponse, $translator);
         $this->paymentMetaRepository = $paymentMetaRepository;
