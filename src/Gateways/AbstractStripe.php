@@ -5,26 +5,38 @@ namespace Crm\StripeModule\Gateways;
 use Crm\ApplicationModule\Models\Config\ApplicationConfig;
 use Crm\PaymentsModule\Models\GatewayFail;
 use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
+use Crm\PaymentsModule\Models\Gateways\RefundStatusEnum;
+use Crm\PaymentsModule\Models\Gateways\RefundableInterface;
 use Crm\PaymentsModule\Repositories\PaymentMetaRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
+use Exception;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Number;
 use Money\Parser\DecimalMoneyParser;
 use Nette\Application\LinkGenerator;
+use Nette\Database\Table\ActiveRow;
 use Nette\Http\Response;
 use Nette\Localization\Translator;
 use Stripe\Checkout\Session;
 use Stripe\Customer;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
+use Stripe\Refund;
 use Stripe\SetupIntent;
 use Stripe\Stripe;
 
-class AbstractStripe extends GatewayAbstract
+class AbstractStripe extends GatewayAbstract implements RefundableInterface
 {
     public const GATEWAY_CODE = 'stripe';
+
+    public const REFUND_ID = 'stripe_refund_id';
+    public const REFUND_AMOUNT = 'refund_amount';
+    public const REFUND_DATE = 'refund_date';
+    public const REFUND_FAILURE_REASON = 'refund_failure_reason';
+    public const REFUND_FAILURE_BALANCE_TRANSACTION = 'refund_failure_balance_transaction';
 
     /** @var PaymentIntent */
     protected $paymentIntent;
@@ -215,6 +227,37 @@ class AbstractStripe extends GatewayAbstract
         return $this->paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function refund(ActiveRow $payment, float $amount): RefundStatusEnum
+    {
+        $this->initialize();
+
+        $paymentIntentId = $this->paymentMetaRepository->values($payment, 'payment_intent_id')->fetch()?->value;
+        if (!$paymentIntentId) {
+            return RefundStatusEnum::Failure;
+        }
+
+        $currency = new Currency($this->applicationConfig->get('currency'));
+
+        try {
+            $refund = Refund::create([
+                'payment_intent' => $paymentIntentId,
+                'amount' => $this->calculateStripeAmount(abs($amount), $currency),
+            ]);
+
+            $this->paymentMetaRepository->add($payment, self::REFUND_ID, $refund->id);
+            $this->paymentMetaRepository->add($payment, self::REFUND_AMOUNT, $amount);
+            $this->paymentMetaRepository->add($payment, self::REFUND_DATE, (new \DateTime)->format(DATE_RFC3339));
+
+            return RefundStatusEnum::Success;
+        } catch (ApiErrorException $e) {
+            $this->paymentMetaRepository->add($payment, self::REFUND_FAILURE_REASON, $e->getMessage());
+            return RefundStatusEnum::Failure;
+        }
+    }
+
     public function createSetupIntent()
     {
         $this->initialize();
@@ -225,7 +268,7 @@ class AbstractStripe extends GatewayAbstract
     {
         $moneyParser = new DecimalMoneyParser(new ISOCurrencies());
         $number = Number::fromFloat($amount);
-        $money = $moneyParser->parse((string) $number, $currency);
+        $money = $moneyParser->parse((string)$number, $currency);
         return $money->getAmount();
     }
 }
