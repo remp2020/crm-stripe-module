@@ -8,6 +8,7 @@ use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
 use Crm\PaymentsModule\Models\Gateways\RefundStatusEnum;
 use Crm\PaymentsModule\Models\Gateways\RefundableInterface;
 use Crm\PaymentsModule\Repositories\PaymentMetaRepository;
+use Crm\SubscriptionsModule\Repositories\SubscriptionTypeItemsRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
 use Exception;
 use Money\Currencies\ISOCurrencies;
@@ -18,7 +19,6 @@ use Nette\Application\LinkGenerator;
 use Nette\Database\Table\ActiveRow;
 use Nette\Http\Response;
 use Nette\Localization\Translator;
-use Stripe\Checkout\Session;
 use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
@@ -26,7 +26,7 @@ use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Refund;
 use Stripe\SetupIntent;
-use Stripe\Stripe;
+use Stripe\StripeClient;
 
 class AbstractStripe extends GatewayAbstract implements RefundableInterface
 {
@@ -41,30 +41,28 @@ class AbstractStripe extends GatewayAbstract implements RefundableInterface
     /** @var PaymentIntent */
     protected $paymentIntent;
 
-    protected $paymentMetaRepository;
-
-    protected $userMetaRepository;
+    protected StripeClient $stripeClient;
 
     public function __construct(
         LinkGenerator $linkGenerator,
         ApplicationConfig $applicationConfig,
         Response $httpResponse,
         Translator $translator,
-        PaymentMetaRepository $paymentMetaRepository,
-        UserMetaRepository $userMetaRepository,
+        protected readonly PaymentMetaRepository $paymentMetaRepository,
+        protected readonly UserMetaRepository $userMetaRepository,
+        protected readonly SubscriptionTypeItemsRepository $subscriptionTypeItemsRepository,
     ) {
         parent::__construct($linkGenerator, $applicationConfig, $httpResponse, $translator);
-        $this->paymentMetaRepository = $paymentMetaRepository;
-        $this->userMetaRepository = $userMetaRepository;
     }
 
-    protected function initialize()
+    protected function initialize(): StripeClient
     {
         $secret = $this->applicationConfig->get('stripe_secret');
         if (!$secret) {
             throw new \Exception('Unable to initialize stripe gateway, secret is missing from CRM Admin configuration');
         }
-        Stripe::setApiKey($this->applicationConfig->get('stripe_secret'));
+
+        return new StripeClient($this->applicationConfig->get('stripe_secret'));
     }
 
     public function begin($payment)
@@ -115,11 +113,10 @@ class AbstractStripe extends GatewayAbstract implements RefundableInterface
             $checkoutSessionConfig['customer_email'] = $payment->user->email;
         }
 
-        $checkoutSession = Session::create($checkoutSessionConfig);
+        $checkoutSession = $this->stripeClient->checkout->sessions->create($checkoutSessionConfig);
 
-        // create payment intent
-        $this->paymentIntent = PaymentIntent::retrieve($checkoutSession->payment_intent);
-        $this->paymentMetaRepository->add($payment, 'payment_intent_id', $this->paymentIntent->id);
+        // store payment intent data
+        $this->paymentMetaRepository->add($payment, 'payment_intent_id', $checkoutSession->payment_intent->id);
 
         $this->httpResponse->redirect($checkoutSession->url);
         exit();

@@ -1,0 +1,19 @@
+{
+  "$id": "https://example.com/post.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Create Stripe checkout session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [],
+  "properties": {
+    "access_token": {
+      "type": "string"
+    },
+    "subscription_type_code": {
+      "type": "string"
+    },
+    "payment_id": {
+      "type": "integer"
+    }
+  }
+}

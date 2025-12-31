@@ -8,10 +8,15 @@ use Crm\ApiModule\Models\Router\ApiIdentifier;
 use Crm\ApiModule\Models\Router\ApiRoute;
 use Crm\ApplicationModule\Application\Managers\SeederManager;
 use Crm\ApplicationModule\CrmModule;
+use Crm\StripeModule\Api\CreateSubscriptionCheckoutSessionApiHandler;
 use Crm\StripeModule\Api\SetupIntentHandler;
+use Crm\StripeModule\Api\WebhookApiHandler;
+use Crm\StripeModule\Hermes\CheckoutSessionCompletedWebhookHandler;
+use Crm\StripeModule\Hermes\InvoicePaidWebhookHandler;
 use Crm\StripeModule\Seeders\ConfigsSeeder;
 use Crm\StripeModule\Seeders\PaymentGatewaysSeeder;
 use Crm\StripeModule\Seeders\SalesFunnelsSeeder;
+use Tomaj\Hermes\Dispatcher;
 
 class StripeModule extends CrmModule
 {
@@ -30,6 +35,35 @@ class StripeModule extends CrmModule
                 SetupIntentHandler::class,
                 NoAuthorization::class,
             ),
+        );
+
+        $apiRoutersContainer->attachRouter(
+            new ApiRoute(
+                new ApiIdentifier('1', 'stripe', 'create-checkout-session', 'POST'),
+                CreateSubscriptionCheckoutSessionApiHandler::class,
+                NoAuthorization::class,
+            ),
+        );
+
+        $apiRoutersContainer->attachRouter(
+            new ApiRoute(
+                new ApiIdentifier('1', 'stripe', 'webhook', 'POST'),
+                WebhookApiHandler::class,
+                NoAuthorization::class,
+            ),
+        );
+    }
+
+    public function registerHermesHandlers(Dispatcher $dispatcher)
+    {
+        $dispatcher->registerHandler(
+            'stripe-webhook-invoice.paid',
+            $this->getInstance(InvoicePaidWebhookHandler::class),
+        );
+
+        $dispatcher->registerHandler(
+            'stripe-webhook-checkout.session.completed',
+            $this->getInstance(CheckoutSessionCompletedWebhookHandler::class),
         );
     }
 }

@@ -3,14 +3,21 @@ services:
 		setup:
 			- addModule(Crm\StripeModule\StripeModule())
 
-	- Crm\StripeModule\Api\SetupIntentHandler
+	stripeSetupIntentApiHandler: Crm\StripeModule\Api\SetupIntentHandler
+	stripeCreateSubscriptionCheckoutSessionApiHandler: Crm\StripeModule\Api\CreateSubscriptionCheckoutSessionApiHandler
+	stripeWebhookApiHandler: Crm\StripeModule\Api\WebhookApiHandler
+	- Crm\StripeModule\Hermes\InvoicePaidWebhookHandler
+	- Crm\StripeModule\Hermes\CheckoutSessionCompletedWebhookHandler
 	- Crm\StripeModule\Seeders\ConfigsSeeder
 	- Crm\StripeModule\Seeders\PaymentGatewaysSeeder
 	- Crm\StripeModule\Seeders\SalesFunnelsSeeder
 	- Crm\StripeModule\Gateways\Stripe
 	- Crm\StripeModule\Gateways\StripeRecurrent
 	- Crm\StripeModule\Gateways\StripeWallet
+	- Crm\StripeModule\Gateways\StripeBillingRecurrent
 	- Crm\StripeModule\Models\StripeWalletClient
+	- Crm\StripeModule\Models\StripeService
+	- Crm\StripeModule\Repositories\StripeCheckoutSessionsRepository
 
 	paymentCompleteRedirect:
 		setup:
@@ -21,3 +28,4 @@ services:
 			- registerGateway(stripe, Crm\StripeModule\Gateways\Stripe)
 			- registerGateway(stripe_recurrent, Crm\StripeModule\Gateways\StripeRecurrent)
 			- registerGateway(stripe_wallet, Crm\StripeModule\Gateways\StripeWallet)
+			- registerGateway(stripe_billing_recurrent, Crm\StripeModule\Gateways\StripeBillingRecurrent)
