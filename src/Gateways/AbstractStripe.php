@@ -121,8 +121,7 @@ class AbstractStripe extends GatewayAbstract implements RefundableInterface
         $this->paymentIntent = PaymentIntent::retrieve($checkoutSession->payment_intent);
         $this->paymentMetaRepository->add($payment, 'payment_intent_id', $this->paymentIntent->id);
 
-        // redirect to page, where JS library redirects user to Stripe Checkout page
-        $this->httpResponse->redirect($this->linkGenerator->link('Stripe:Checkout:Redirect', ['checkoutSessionId' => $checkoutSession->id]));
+        $this->httpResponse->redirect($checkoutSession->url);
         exit();
     }
 

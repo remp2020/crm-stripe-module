@@ -1,10 +1,5 @@
-<script src="https://js.stripe.com/v3/"></script>
+<script src="https://js.stripe.com/clover/stripe.js"></script>
 
 <script type="text/javascript">
-    var stripe = Stripe({$stripePublishable});
-    stripe.redirectToCheckout({
-        sessionId: {$checkoutSessionId}
-    }).then(function (result) {
-        console.warn("stripe redirect didn't occur:", result)
-    });
+    window.location.href = {$checkoutUrl};
 </script>
