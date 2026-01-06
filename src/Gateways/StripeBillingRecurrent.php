@@ -77,8 +77,8 @@ class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPayment
 
         $this->checkoutSession = $checkoutSession;
 
-        $this->paymentMetaRepository->add($payment, PaymentMeta::STRIPE_INVOICE_ID, $checkoutSession->invoice->id);
-        $this->paymentMetaRepository->add($payment, PaymentMeta::STRIPE_SUBSCRIPTION_ID, $checkoutSession->subscription->id);
+        $this->paymentMetaRepository->add($payment, PaymentMeta::INVOICE_ID, $checkoutSession->invoice->id);
+        $this->paymentMetaRepository->add($payment, PaymentMeta::SUBSCRIPTION_ID, $checkoutSession->subscription->id);
 
         return $checkoutSession->payment_status === Session::PAYMENT_STATUS_PAID;
     }
@@ -166,8 +166,8 @@ class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPayment
 
         if ($latestInvoice->status === Invoice::STATUS_PAID) {
             // Usually this shouldn't happen because of the webhook based confirmation of automatic renewal.
-            $this->paymentMetaRepository->add($payment, PaymentMeta::STRIPE_INVOICE_ID, $latestInvoice->id);
-            $this->paymentMetaRepository->add($payment, PaymentMeta::STRIPE_SUBSCRIPTION_ID, $stripeSubscription->id);
+            $this->paymentMetaRepository->add($payment, PaymentMeta::INVOICE_ID, $latestInvoice->id);
+            $this->paymentMetaRepository->add($payment, PaymentMeta::SUBSCRIPTION_ID, $stripeSubscription->id);
 
             return self::CHARGE_OK;
         }

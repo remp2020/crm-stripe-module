@@ -2,18 +2,22 @@
 
 namespace Crm\StripeModule\Gateways;
 
+use Crm\StripeModule\Models\PaymentMeta;
+use Stripe\PaymentIntent;
+
 class Stripe extends AbstractStripe
 {
     public function begin($payment)
     {
-        $this->initialize();
-
         // check if there's payment method already associated (by collecting card data on frontend)
-        $paymentMethodId = $this->paymentMetaRepository->values($payment, 'payment_method_id')->fetchField('value');
+        $paymentMethodId = $this->paymentMetaRepository
+            ->findByPaymentAndKey($payment, PaymentMeta::PAYMENT_METHOD_ID)
+            ?->value;
+
         if ($paymentMethodId) {
-            $this->processSetupIntent($paymentMethodId, $payment, 'on_session');
+            $this->processSetupIntent($paymentMethodId, $payment, PaymentIntent::SETUP_FUTURE_USAGE_ON_SESSION);
         }
 
-        $this->processCheckout($payment, 'on_session');
+        $this->processCheckout($payment, PaymentIntent::SETUP_FUTURE_USAGE_ON_SESSION);
     }
 }

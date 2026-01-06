@@ -6,22 +6,33 @@ namespace Crm\StripeModule\Models;
 
 use Crm\ApplicationModule\Models\Config\ApplicationConfig;
 use Crm\UsersModule\Repositories\UserMetaRepository;
+use Money\Currencies\ISOCurrencies;
+use Money\Currency;
+use Money\Number;
+use Money\Parser\DecimalMoneyParser;
 use Nette\Database\Table\ActiveRow;
 use Stripe\Checkout\Session;
 use Stripe\Customer;
 use Stripe\Invoice;
+use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
+use Stripe\Refund;
+use Stripe\SetupIntent;
 use Stripe\StripeClient;
 use Stripe\Subscription;
 
 class StripeService
 {
+    private Currency $currency;
+
     public function __construct(
         private readonly ApplicationConfig $applicationConfig,
         private readonly UserMetaRepository $userMetaRepository,
     ) {
+        $this->currency = new Currency($this->applicationConfig->get('currency'));
     }
 
-    public function getStripeCustomerByEmail(string $email): Customer
+    public function getCustomerByEmail(string $email): Customer
     {
         $stripeCustomer = $this->getClient()->customers->all([
             'email' => $email,
@@ -29,15 +40,13 @@ class StripeService
         ])->first();
 
         if (!$stripeCustomer) {
-            $stripeCustomer = $this->getClient()->customers->create([
-                'email' => $email,
-            ]);
+            $stripeCustomer = $this->createCustomer($email);
         }
 
         return $stripeCustomer;
     }
 
-    public function getStripeCustomerByUser(ActiveRow $user): Customer
+    public function getCustomerByUser(ActiveRow $user): Customer
     {
         $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($user, 'stripe_customer_id');
         if ($stripeCustomerId) {
@@ -50,13 +59,11 @@ class StripeService
         ])[0] ?? null;
 
         if (!$stripeCustomer) {
-            $stripeCustomer = $this->getStripeCustomerByEmail($user->email);
+            $stripeCustomer = $this->getCustomerByEmail($user->email);
         }
 
         if (!$stripeCustomer) {
-            $stripeCustomer = $this->getClient()->customers->create([
-                'email' => $user->email,
-            ]);
+            $stripeCustomer = $this->createCustomer($user->email);
         }
 
         $this->userMetaRepository->add(
@@ -68,22 +75,36 @@ class StripeService
         return $stripeCustomer;
     }
 
+    public function createCustomer(string $email)
+    {
+        return $this->getClient()->customers->create([
+            'email' => $email,
+        ]);
+    }
+
+    public function createSetupIntent(): SetupIntent
+    {
+        return $this->getClient()->setupIntents->create();
+    }
+
     public function createSubscriptionCheckoutSession(Customer $stripeCustomer, string $priceId, string $returnUrl): Session
     {
         $stripeClient = $this->getClient();
 
-        $lineItems[] = [
-            'price' => $priceId,
-            'quantity' => 1,
+        $lineItems = [
+            [
+                'price' => $priceId,
+                'quantity' => 1,
+            ],
         ];
 
         $stripeCheckoutReference = bin2hex(random_bytes(8));
 
         $checkoutSessionConfig = [
             'customer' => $stripeCustomer->id,
-            'payment_method_types' => ['card'],
-            'mode' => 'subscription',
-            'ui_mode' => 'embedded',
+            'payment_method_types' => [PaymentMethod::TYPE_CARD],
+            'mode' => Session::MODE_SUBSCRIPTION,
+            'ui_mode' => Session::UI_MODE_EMBEDDED,
             'return_url' => $returnUrl,
             'client_reference_id' => $stripeCheckoutReference,
             'line_items' => $lineItems,
@@ -96,6 +117,80 @@ class StripeService
         ];
 
         return $stripeClient->checkout->sessions->create($checkoutSessionConfig);
+    }
+
+    public function createPaymentCheckoutSession(
+        ActiveRow $payment,
+        string $returnUrl,
+        string $setupFutureUsage = PaymentIntent::SETUP_FUTURE_USAGE_ON_SESSION,
+    ): Session {
+        $lineItems = [];
+        foreach ($payment->related('payment_items') as $paymentItem) {
+            $lineItems[] = [
+                'price_data' => [
+                    'unit_amount' => $this->calculateStripeAmount((float) $paymentItem->amount),
+                    'currency' => $this->currency->getCode(),
+                    'product_data' => [
+                        'name' => $paymentItem->name,
+                    ],
+                ],
+                'quantity' => $paymentItem->count,
+            ];
+        }
+
+        $customer = $this->getCustomerByUser($payment->user);
+        $stripeCheckoutReference = bin2hex(random_bytes(8));
+
+        return $this->getClient()->checkout->sessions->create([
+            'payment_method_types' => [PaymentMethod::TYPE_CARD],
+            'mode' => Session::MODE_PAYMENT,
+            'customer' => $customer->id,
+            'client_reference_id' => $stripeCheckoutReference,
+            'payment_intent_data' => [
+                'setup_future_usage' => $setupFutureUsage,
+                'capture_method' => PaymentIntent::CAPTURE_METHOD_AUTOMATIC,
+            ],
+            'line_items' => $lineItems,
+            'success_url' => $returnUrl,
+            'cancel_url' => $returnUrl,
+        ]);
+    }
+
+    public function createPaymentIntent(
+        PaymentMethod $paymentMethod,
+        Customer $customer,
+        float $amount,
+        ?string $setupFutureUsage = null,
+        bool $offSession = false,
+        ?string $returnUrl = null,
+    ): PaymentIntent {
+        $params = [
+            'amount' => $this->calculateStripeAmount($amount),
+            'currency' => $this->currency->getCode(),
+            'customer' => $customer->id,
+            'payment_method' => $paymentMethod->id,
+            'off_session' => $offSession,
+            'confirm' => true,
+            'capture_method' => PaymentIntent::CAPTURE_METHOD_AUTOMATIC,
+            'confirmation_method' => PaymentIntent::CONFIRMATION_METHOD_AUTOMATIC,
+        ];
+
+        if (isset($setupFutureUsage)) {
+            $params['setup_future_usage'] = $setupFutureUsage;
+        }
+        if (isset($returnUrl)) {
+            $params['return_url'] = $returnUrl;
+        }
+
+        return $this->getClient()->paymentIntents->create($params);
+    }
+
+    public function createRefund(PaymentIntent $paymentIntent, float $amount): Refund
+    {
+        return $this->getClient()->refunds->create([
+            'payment_intent' => $paymentIntent->id,
+            'amount' => $this->calculateStripeAmount($amount),
+        ]);
     }
 
     public function retrieveCheckoutSession(string $checkoutSessionId): Session
@@ -121,11 +216,6 @@ class StripeService
         ]);
     }
 
-    public function cancelSubscription(string $subscriptionId): Subscription
-    {
-        return $this->getClient()->subscriptions->cancel($subscriptionId);
-    }
-
     public function retrieveInvoice(string $invoiceId): Invoice
     {
         return $this->getClient()->invoices->retrieve($invoiceId, [
@@ -135,6 +225,21 @@ class StripeService
         ]);
     }
 
+    public function retrievePaymentMethod(string $paymentMethodId): PaymentMethod
+    {
+        return $this->getClient()->paymentMethods->retrieve($paymentMethodId);
+    }
+
+    public function retrievePaymentIntent(string $paymentIntentId): PaymentIntent
+    {
+        return $this->getClient()->paymentIntents->retrieve($paymentIntentId);
+    }
+
+    public function cancelSubscription(string $subscriptionId): Subscription
+    {
+        return $this->getClient()->subscriptions->cancel($subscriptionId);
+    }
+
     public function getPaymentForCheckoutSession(ActiveRow $checkoutSessionRow): ActiveRow
     {
         if (!isset($checkoutSessionRow->payment)) {
@@ -142,6 +247,14 @@ class StripeService
         }
 
         return $checkoutSessionRow->payment;
+    }
+
+    protected function calculateStripeAmount(float $amount): string
+    {
+        $moneyParser = new DecimalMoneyParser(new ISOCurrencies());
+        $number = Number::fromFloat($amount);
+        $money = $moneyParser->parse((string) $number, $this->currency);
+        return $money->getAmount();
     }
 
     protected function getClient(): StripeClient

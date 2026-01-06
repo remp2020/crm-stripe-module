@@ -8,6 +8,7 @@ services:
 	stripeWebhookApiHandler: Crm\StripeModule\Api\WebhookApiHandler
 	- Crm\StripeModule\Hermes\InvoicePaidWebhookHandler
 	- Crm\StripeModule\Hermes\CheckoutSessionCompletedWebhookHandler
+	- Crm\StripeModule\DataProviders\SalesFunnelTwigVariablesDataProvider
 	- Crm\StripeModule\Seeders\ConfigsSeeder
 	- Crm\StripeModule\Seeders\PaymentGatewaysSeeder
 	- Crm\StripeModule\Seeders\SalesFunnelsSeeder

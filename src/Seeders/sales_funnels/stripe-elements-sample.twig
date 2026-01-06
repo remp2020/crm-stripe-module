@@ -124,13 +124,13 @@
 
         <div class="row">
             <div class="col-md-4">
-                <input id="cardholder-name" name="payment_metadata[cardholder_name]" placeholder="Card holder" class="form-control mb-4" type="text">
+                <input id="cardholder-name" placeholder="Card holder" class="form-control mb-4" type="text">
             </div>
         </div>
 
         <!-- Used to display form errors -->
         <div id="card-errors" role="alert"></div>
-        <input type="hidden" name="payment_metadata[payment_method_id]" id="stripePaymentMethodId">
+        <input type="hidden" name="payment_metadata[stripe_payment_method_id]" id="stripePaymentMethodId">
     </div>
 
     <hr>
@@ -282,7 +282,7 @@
 </script>
 
 <script type="text/javascript">
-    var stripe = Stripe('-- INCLUDE YOUR PUBLISHABLE KEY HERE --');
+    var stripe = Stripe("{{ stripe_publishable_key }}");
     var elements = stripe.elements();
 
     var cardElement = elements.create("card");

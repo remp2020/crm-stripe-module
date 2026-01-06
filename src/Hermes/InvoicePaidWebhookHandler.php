@@ -54,7 +54,7 @@ class InvoicePaidWebhookHandler implements HandlerInterface
 
         $payment = $this->paymentMetaRepository
             ->findByMeta(
-                key: PaymentMeta::STRIPE_INVOICE_ID,
+                key: PaymentMeta::INVOICE_ID,
                 value: $invoiceId,
             )
             ?->payment;
@@ -91,8 +91,8 @@ class InvoicePaidWebhookHandler implements HandlerInterface
         $paymentItemContainer = (new PaymentItemContainer())
             ->addItems(SubscriptionTypePaymentItem::fromSubscriptionType($subscriptionType));
         $paymentMeta = [
-            PaymentMeta::STRIPE_INVOICE_ID => $stripeInvoice->id,
-            PaymentMeta::STRIPE_SUBSCRIPTION_ID => $stripeSubscription->id,
+            PaymentMeta::INVOICE_ID => $stripeInvoice->id,
+            PaymentMeta::SUBSCRIPTION_ID => $stripeSubscription->id,
         ];
         $payment = $this->paymentsRepository->add(
             subscriptionType: $subscriptionType,
@@ -146,7 +146,7 @@ class InvoicePaidWebhookHandler implements HandlerInterface
     {
         return $this->paymentMetaRepository
             ->findByKeyAndValue(
-                key: PaymentMeta::STRIPE_SUBSCRIPTION_ID,
+                key: PaymentMeta::SUBSCRIPTION_ID,
                 value: $stripeSubscription->id,
             )
             ->order('id DESC')

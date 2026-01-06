@@ -5,7 +5,7 @@ namespace Crm\StripeModule\Gateways;
 use Crm\PaymentsModule\Models\Gateways\RecurrentPaymentInterface;
 use Crm\PaymentsModule\Models\RecurrentPaymentFailStop;
 use Crm\PaymentsModule\Models\RecurrentPaymentFailTry;
-use Money\Currency;
+use Crm\StripeModule\Models\PaymentMeta;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Stripe\ErrorObject;
 use Stripe\Exception\CardException;
@@ -15,43 +15,40 @@ class StripeRecurrent extends AbstractStripe implements RecurrentPaymentInterfac
 {
     public const GATEWAY_CODE = 'stripe_recurrent';
 
-    /** @var ErrorObject */
-    private $paymentIntentError;
+    private ErrorObject $paymentIntentError;
 
-    public function begin($payment)
+    public function begin($payment): void
     {
-        $this->initialize();
-
         // check if there's payment method already associated (by collecting card data on frontend)
-        $paymentMethodId = $this->paymentMetaRepository->values($payment, 'payment_method_id')->fetchField('value');
+        $paymentMethodId = $this->paymentMetaRepository
+            ->findByPaymentAndKey($payment, PaymentMeta::PAYMENT_METHOD_ID)
+            ?->value;
         if ($paymentMethodId) {
-            $this->processSetupIntent($paymentMethodId, $payment, 'off_session');
+            $this->processSetupIntent($paymentMethodId, $payment, PaymentIntent::SETUP_FUTURE_USAGE_OFF_SESSION);
         }
 
-        $this->processCheckout($payment, 'off_session');
+        $this->processCheckout($payment, PaymentIntent::SETUP_FUTURE_USAGE_OFF_SESSION);
     }
 
     public function charge($payment, $token): string
     {
-        $this->initialize();
-
-        $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($payment->user, 'stripe_customer');
-
         try {
-            $currency = new Currency($this->applicationConfig->get('currency'));
-            $this->paymentIntent = PaymentIntent::create([
-                'amount' => $this->calculateStripeAmount($payment->amount, $currency),
-                'currency' => $currency->getCode(),
-                'customer' => $stripeCustomerId,
-                'payment_method' => $token,
-                'confirm' => true,
-                'off_session' => true,
-            ]);
+            $stripeCustomer = $this->stripeService->getCustomerByUser($payment->user);
+            $stripePaymentMethod = $this->stripeService->retrievePaymentMethod($token);
+
+            $this->paymentIntent = $this->stripeService->createPaymentIntent(
+                paymentMethod: $stripePaymentMethod,
+                customer: $stripeCustomer,
+                amount: (float) $payment->amount,
+                offSession: true,
+            );
         } catch (CardException $e) {
             $this->paymentIntentError = $e->getError();
             $paymentIntentId = $e->getError()->payment_intent->id;
-            $this->paymentIntent = PaymentIntent::retrieve($paymentIntentId);
+            $this->paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
         }
+
+        $this->paymentMetaRepository->add($payment, PaymentMeta::PAYMENT_INTENT_ID, $this->paymentIntent->id);
 
         if ($this->paymentIntent->status !== PaymentIntent::STATUS_SUCCEEDED) {
             if ($this->hasStopRecurrentPayment($payment, $this->paymentIntent->status)) {

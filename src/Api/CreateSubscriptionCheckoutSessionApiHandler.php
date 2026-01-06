@@ -105,7 +105,7 @@ class CreateSubscriptionCheckoutSessionApiHandler extends ApiHandler
             ]);
         }
 
-        $stripeCustomer = $this->stripeService->getStripeCustomerByUser($user);
+        $stripeCustomer = $this->stripeService->getCustomerByUser($user);
         $priceId = $this->subscriptionTypesMetaRepository->getMetaValue($subscriptionType, 'stripe_price_id');
 
         /** @var StripeBillingRecurrent $stripeBillingGateway */

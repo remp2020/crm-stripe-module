@@ -8,9 +8,11 @@ use Crm\ApiModule\Models\Router\ApiIdentifier;
 use Crm\ApiModule\Models\Router\ApiRoute;
 use Crm\ApplicationModule\Application\Managers\SeederManager;
 use Crm\ApplicationModule\CrmModule;
+use Crm\ApplicationModule\Models\DataProvider\DataProviderManager;
 use Crm\StripeModule\Api\CreateSubscriptionCheckoutSessionApiHandler;
 use Crm\StripeModule\Api\SetupIntentHandler;
 use Crm\StripeModule\Api\WebhookApiHandler;
+use Crm\StripeModule\DataProviders\SalesFunnelTwigVariablesDataProvider;
 use Crm\StripeModule\Hermes\CheckoutSessionCompletedWebhookHandler;
 use Crm\StripeModule\Hermes\InvoicePaidWebhookHandler;
 use Crm\StripeModule\Seeders\ConfigsSeeder;
@@ -51,6 +53,14 @@ class StripeModule extends CrmModule
                 WebhookApiHandler::class,
                 NoAuthorization::class,
             ),
+        );
+    }
+
+    public function registerDataProviders(DataProviderManager $dataProviderManager)
+    {
+        $dataProviderManager->registerDataProvider(
+            'sales_funnel.dataprovider.twig_variables',
+            $this->getInstance(SalesFunnelTwigVariablesDataProvider::class),
         );
     }
 
