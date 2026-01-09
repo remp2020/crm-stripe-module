@@ -9,18 +9,22 @@ use Crm\PaymentsModule\Repositories\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeBillingRecurrent;
 use Crm\StripeModule\Models\StripeService;
 use Crm\UsersModule\Models\Auth\Access\AccessToken;
+use Kdyby\Autowired\Attributes\Autowire;
 use Stripe\Checkout\Session;
 
 class CheckoutPresenter extends FrontendPresenter
 {
-    public function __construct(
-        private readonly PaymentsRepository $paymentsRepository,
-        private readonly AccessToken $accessToken,
-        private readonly StripeService $stripeService,
-        private readonly GatewayFactory $gatewayFactory,
-    ) {
-        parent::__construct();
-    }
+    #[Autowire]
+    public PaymentsRepository $paymentsRepository;
+
+    #[Autowire]
+    public AccessToken $accessToken;
+
+    #[Autowire]
+    public StripeService $stripeService;
+
+    #[Autowire]
+    public GatewayFactory $gatewayFactory;
 
     public function renderRedirect(string $checkoutSessionId)
     {

@@ -9,28 +9,20 @@ use Crm\PaymentsModule\Repositories\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
 use Crm\UsersModule\Repositories\CountriesRepository;
+use Kdyby\Autowired\Attributes\Autowire;
 use Nette\Application\BadRequestException;
-use Nette\DI\Attributes\Inject;
 use Stripe\PaymentIntent;
 
 class StripeWalletPresenter extends FrontendPresenter
 {
-    #[Inject]
+    #[Autowire]
     public PaymentsRepository $paymentsRepository;
 
-    #[Inject]
+    #[Autowire]
     public CountriesRepository $countriesRepository;
 
+    #[Autowire]
     public StripeWalletClient $stripeWalletClient;
-
-    public function startup()
-    {
-        parent::startup();
-
-        // Requiring this dependency on the fly, since we scan this presenter even when module is not enabled
-        // and attempt to pass it in construct fails because service would not be registered on some installations.
-        $this->stripeWalletClient = $this->container->getByType(StripeWalletClient::class);
-    }
 
     public function renderDefault($id)
     {
