@@ -29,7 +29,6 @@ class StripeService
         private readonly ApplicationConfig $applicationConfig,
         private readonly UserMetaRepository $userMetaRepository,
     ) {
-        $this->currency = new Currency($this->applicationConfig->get('currency'));
     }
 
     public function getCustomerByEmail(string $email): Customer
@@ -129,7 +128,7 @@ class StripeService
             $lineItems[] = [
                 'price_data' => [
                     'unit_amount' => $this->calculateStripeAmount((float) $paymentItem->amount),
-                    'currency' => $this->currency->getCode(),
+                    'currency' => $this->getCurrency()->getCode(),
                     'product_data' => [
                         'name' => $paymentItem->name,
                     ],
@@ -166,7 +165,7 @@ class StripeService
     ): PaymentIntent {
         $params = [
             'amount' => $this->calculateStripeAmount($amount),
-            'currency' => $this->currency->getCode(),
+            'currency' => $this->getCurrency()->getCode(),
             'customer' => $customer->id,
             'payment_method' => $paymentMethod->id,
             'off_session' => $offSession,
@@ -253,7 +252,7 @@ class StripeService
     {
         $moneyParser = new DecimalMoneyParser(new ISOCurrencies());
         $number = Number::fromFloat($amount);
-        $money = $moneyParser->parse((string) $number, $this->currency);
+        $money = $moneyParser->parse((string) $number, $this->getCurrency());
         return $money->getAmount();
     }
 
@@ -265,5 +264,14 @@ class StripeService
         }
 
         return new StripeClient($this->applicationConfig->get('stripe_secret'));
+    }
+
+    protected function getCurrency(): Currency
+    {
+        if (!isset($this->currency)) {
+            $this->currency = new Currency($this->applicationConfig->get('currency'));
+        }
+
+        return $this->currency;
     }
 }
