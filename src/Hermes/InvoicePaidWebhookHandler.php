@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Crm\StripeModule\Hermes;
 
 use Crm\ApplicationModule\Models\Database\ActiveRow;
+use Crm\PaymentsModule\Models\OneStopShop\CountryResolution;
 use Crm\PaymentsModule\Models\Payment\PaymentStatusEnum;
 use Crm\PaymentsModule\Models\PaymentItem\PaymentItemContainer;
 use Crm\PaymentsModule\Models\PaymentProcessor;
@@ -20,7 +21,9 @@ use Crm\StripeModule\Models\StripeService;
 use Crm\StripeModule\Models\UserMeta;
 use Crm\StripeModule\Repositories\StripeCheckoutSessionsRepository;
 use Crm\SubscriptionsModule\Models\PaymentItem\SubscriptionTypePaymentItem;
+use Crm\SubscriptionsModule\Repositories\SubscriptionTypeItemsRepository;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypesMetaRepository;
+use Crm\UsersModule\Repositories\CountriesRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
 use Nette\Utils\DateTime;
 use Stripe\Invoice;
@@ -44,6 +47,8 @@ class InvoicePaidWebhookHandler implements HandlerInterface
         protected UserMetaRepository $userMetaRepository,
         protected PaymentMetaRepository $paymentMetaRepository,
         protected RecurrentPaymentsProcessor $recurrentPaymentsProcessor,
+        protected SubscriptionTypeItemsRepository $subscriptionTypeItemsRepository,
+        protected CountriesRepository $countriesRepository,
     ) {
     }
 
@@ -87,9 +92,52 @@ class InvoicePaidWebhookHandler implements HandlerInterface
 
         $lastPayment = $this->getLastStripeSubscriptionPayment($stripeSubscription);
         $lastRecurrentPayment = $this->recurrentPaymentsRepository->recurrent($lastPayment);
+        $countryResolution = null;
+        $paymentItemContainer = (new PaymentItemContainer());
 
-        $paymentItemContainer = (new PaymentItemContainer())
-            ->addItems(SubscriptionTypePaymentItem::fromSubscriptionType($subscriptionType));
+        if (count($stripeInvoice->lines) === 1) {
+            $subscriptionTypeItem = $this->subscriptionTypeItemsRepository
+                ->subscriptionTypeItems($subscriptionType)
+                ->fetch();
+
+            $vatRate = null;
+
+            $line = $stripeInvoice->lines->first();
+            foreach ($line->taxes as $tax) {
+                if (isset($tax->tax_rate_details->tax_rate)) {
+                    $stripeTaxRate = $this->stripeService->retrieveTaxRate($tax->tax_rate_details->tax_rate);
+                    $countryResolution = new CountryResolution(
+                        country: $this->countriesRepository->findByIsoCode($stripeTaxRate->country),
+                        reason: 'stripe_tax',
+                    );
+                    $vatRate = $stripeTaxRate->percentage;
+                    break;
+                }
+            }
+
+            $paymentItem = new SubscriptionTypePaymentItem(
+                subscriptionTypeId: $subscriptionType->id,
+                name: $subscriptionTypeItem->name,
+                price: $line->amount / 100,
+                vat: $vatRate ?? $subscriptionTypeItem->vat,
+                subscriptionTypeItemId: $subscriptionTypeItem->id,
+            );
+
+            $paymentItemContainer->addItem($paymentItem);
+        } else {
+            $paymentItemContainer->addItems(SubscriptionTypePaymentItem::fromSubscriptionType($subscriptionType));
+        }
+
+        if (!$countryResolution) {
+            $resolvedCountryCode = $stripeInvoice->customer_address->country;
+            $country = $this->countriesRepository->findByIsoCode($resolvedCountryCode);
+
+            $countryResolution = new CountryResolution(
+                country: $country,
+                reason: 'stripe_customer',
+            );
+        }
+
         $paymentMeta = [
             PaymentMeta::INVOICE_ID => $stripeInvoice->id,
             PaymentMeta::SUBSCRIPTION_ID => $stripeSubscription->id,
@@ -101,6 +149,8 @@ class InvoicePaidWebhookHandler implements HandlerInterface
             paymentItemContainer: $paymentItemContainer,
             amount: $subscriptionType->price,
             metaData: $paymentMeta,
+            paymentCountry: $countryResolution?->country,
+            paymentCountryResolutionReason: $countryResolution?->reason,
         );
         $this->paymentsRepository->update($payment, [
             'paid_at' => DateTime::from($stripeInvoice->status_transitions->paid_at),

@@ -20,6 +20,7 @@ use Stripe\Refund;
 use Stripe\SetupIntent;
 use Stripe\StripeClient;
 use Stripe\Subscription;
+use Stripe\TaxRate;
 
 class StripeService
 {
@@ -47,7 +48,7 @@ class StripeService
 
     public function getCustomerByUser(ActiveRow $user): Customer
     {
-        $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($user, 'stripe_customer_id');
+        $stripeCustomerId = $this->userMetaRepository->userMetaValueByKey($user, UserMeta::STRIPE_CUSTOMER_ID);
         if ($stripeCustomerId) {
             return $this->getClient()->customers->retrieve($stripeCustomerId);
         }
@@ -72,6 +73,22 @@ class StripeService
         );
 
         return $stripeCustomer;
+    }
+
+    public function getInvoicesBySubscription(Subscription $subscription): array
+    {
+        $invoices = [];
+
+        $query = $this->getClient()->invoices->all([
+            'subscription' => $subscription->id,
+            'limit' => 100,
+        ]);
+
+        foreach ($query->autoPagingIterator() as $invoice) {
+            $invoices[] = $invoice;
+        }
+
+        return $invoices;
     }
 
     public function createCustomer(string $email)
@@ -107,6 +124,9 @@ class StripeService
             'return_url' => $returnUrl,
             'client_reference_id' => $stripeCheckoutReference,
             'line_items' => $lineItems,
+            'automatic_tax' => [
+                'enabled' => true,
+            ],
             'subscription_data' => [
                 'metadata' => [
                     'client_reference_id' => $stripeCheckoutReference,
@@ -192,6 +212,16 @@ class StripeService
         ]);
     }
 
+    public function retrieveCustomer(string $customerId): Customer
+    {
+        return $this->getClient()->customers->retrieve($customerId, [
+            'expand' => [
+                'invoice_settings.default_payment_method',
+                'default_source',
+            ],
+        ]);
+    }
+
     public function retrieveCheckoutSession(string $checkoutSessionId): Session
     {
         return $this->getClient()->checkout->sessions->retrieve($checkoutSessionId, [
@@ -232,6 +262,11 @@ class StripeService
     public function retrievePaymentIntent(string $paymentIntentId): PaymentIntent
     {
         return $this->getClient()->paymentIntents->retrieve($paymentIntentId);
+    }
+
+    public function retrieveTaxRate(string $taxRateId): TaxRate
+    {
+        return $this->getClient()->taxRates->retrieve($taxRateId);
     }
 
     public function cancelSubscription(string $subscriptionId): Subscription

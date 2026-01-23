@@ -9,6 +9,7 @@ use Crm\PaymentsModule\Models\GatewayFactory;
 use Crm\PaymentsModule\Repositories\PaymentsRepository;
 use Crm\StripeModule\Gateways\StripeBillingRecurrent;
 use Crm\StripeModule\Models\StripeService;
+use Crm\StripeModule\Models\SubscriptionTypeMeta;
 use Crm\StripeModule\Repositories\StripeCheckoutSessionsRepository;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypesMetaRepository;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypesRepository;
@@ -106,7 +107,7 @@ class CreateSubscriptionCheckoutSessionApiHandler extends ApiHandler
         }
 
         $stripeCustomer = $this->stripeService->getCustomerByUser($user);
-        $priceId = $this->subscriptionTypesMetaRepository->getMetaValue($subscriptionType, 'stripe_price_id');
+        $priceId = $this->subscriptionTypesMetaRepository->getMetaValue($subscriptionType, SubscriptionTypeMeta::PRICE_ID);
 
         /** @var StripeBillingRecurrent $stripeBillingGateway */
         $stripeBillingGateway = $this->gatewayFactory->getGateway(StripeBillingRecurrent::GATEWAY_CODE);
