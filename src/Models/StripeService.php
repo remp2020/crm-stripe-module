@@ -135,7 +135,7 @@ class StripeService
             'expand' => ['line_items'], // so they're included within the created object
             'customer_update' => [
                 'address' => 'auto',
-            ]
+            ],
         ];
 
         return $stripeClient->checkout->sessions->create($checkoutSessionConfig);
