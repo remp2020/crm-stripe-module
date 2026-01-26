@@ -10,10 +10,13 @@ use Crm\StripeModule\Gateways\StripeBillingRecurrent;
 use Crm\StripeModule\Models\StripeService;
 use Crm\UsersModule\Models\Auth\Access\AccessToken;
 use Kdyby\Autowired\Attributes\Autowire;
+use Kdyby\Autowired\AutowireProperties;
 use Stripe\Checkout\Session;
 
 class CheckoutPresenter extends FrontendPresenter
 {
+    use AutowireProperties;
+
     #[Autowire]
     public PaymentsRepository $paymentsRepository;
 
