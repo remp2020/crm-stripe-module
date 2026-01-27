@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Crm\StripeModule\Hermes;
 
-use Crm\ApplicationModule\Models\Database\ActiveRow;
 use Crm\PaymentsModule\Models\OneStopShop\CountryResolution;
 use Crm\PaymentsModule\Models\Payment\PaymentStatusEnum;
 use Crm\PaymentsModule\Models\PaymentItem\PaymentItemContainer;
@@ -23,8 +22,11 @@ use Crm\StripeModule\Repositories\StripeCheckoutSessionsRepository;
 use Crm\SubscriptionsModule\Models\PaymentItem\SubscriptionTypePaymentItem;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypeItemsRepository;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypesMetaRepository;
+use Crm\UsersModule\Models\Auth\UserManager;
 use Crm\UsersModule\Repositories\CountriesRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
+use Crm\UsersModule\Repositories\UsersRepository;
+use Nette\Database\Table\ActiveRow;
 use Nette\Utils\DateTime;
 use Stripe\Invoice;
 use Stripe\Subscription;
@@ -49,6 +51,8 @@ class InvoicePaidWebhookHandler implements HandlerInterface
         protected RecurrentPaymentsProcessor $recurrentPaymentsProcessor,
         protected SubscriptionTypeItemsRepository $subscriptionTypeItemsRepository,
         protected CountriesRepository $countriesRepository,
+        protected UsersRepository $usersRepository,
+        protected UserManager $userManager,
     ) {
     }
 
@@ -91,7 +95,6 @@ class InvoicePaidWebhookHandler implements HandlerInterface
         }
 
         $lastPayment = $this->getLastStripeSubscriptionPayment($stripeSubscription);
-        $lastRecurrentPayment = $this->recurrentPaymentsRepository->recurrent($lastPayment);
         $countryResolution = null;
         $paymentItemContainer = (new PaymentItemContainer());
 
@@ -156,6 +159,11 @@ class InvoicePaidWebhookHandler implements HandlerInterface
             'paid_at' => DateTime::from($stripeInvoice->status_transitions->paid_at),
         ]);
 
+        $lastRecurrentPayment = null;
+        if ($lastPayment) {
+            $lastRecurrentPayment = $this->recurrentPaymentsRepository->recurrent($lastPayment);
+        }
+
         if ($lastRecurrentPayment) {
             $this->recurrentPaymentsRepository->update($lastRecurrentPayment, [
                 'payment_id' => $payment->id,
@@ -186,10 +194,39 @@ class InvoicePaidWebhookHandler implements HandlerInterface
 
     private function getUser(Invoice $stripeInvoice): ActiveRow
     {
-        return $this->userMetaRepository->usersWithKey(
+        $userRow = $this->userMetaRepository->usersWithKey(
             key: UserMeta::STRIPE_CUSTOMER_ID,
             value: $stripeInvoice->customer->id,
         )->limit(1)->fetch()?->user;
+
+        if ($userRow) {
+            return $userRow;
+        }
+
+        $email = $stripeInvoice->customer->email;
+        $userRow = $this->userManager->loadUserByEmail($email);
+
+        if ($userRow) {
+            $this->userMetaRepository->add(
+                user: $userRow,
+                key: UserMeta::STRIPE_CUSTOMER_ID,
+                value: $stripeInvoice->customer->id,
+            );
+            return $userRow;
+        }
+
+        $userRow = $this->userManager->addNewUser(
+            email: $email,
+            sendEmail: false,
+            source: 'stripe',
+            checkEmail: false,
+            addToken: false,
+            userMeta: array_filter([
+                UserMeta::STRIPE_CUSTOMER_ID => $stripeInvoice->customer->id,
+            ]),
+        );
+
+        return $userRow;
     }
 
     private function getLastStripeSubscriptionPayment(Subscription $stripeSubscription): ?ActiveRow
