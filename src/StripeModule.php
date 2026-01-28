@@ -15,6 +15,7 @@ use Crm\StripeModule\Api\WebhookApiHandler;
 use Crm\StripeModule\DataProviders\SalesFunnelTwigVariablesDataProvider;
 use Crm\StripeModule\DataProviders\StripeBillingDataProvider;
 use Crm\StripeModule\Hermes\CheckoutSessionCompletedWebhookHandler;
+use Crm\StripeModule\Hermes\CustomerSubscriptionDeletedWebhookHandler;
 use Crm\StripeModule\Hermes\InvoicePaidWebhookHandler;
 use Crm\StripeModule\Seeders\ConfigsSeeder;
 use Crm\StripeModule\Seeders\PaymentGatewaysSeeder;
@@ -80,6 +81,11 @@ class StripeModule extends CrmModule
         $dispatcher->registerHandler(
             'stripe-webhook-checkout.session.completed',
             $this->getInstance(CheckoutSessionCompletedWebhookHandler::class),
+        );
+
+        $dispatcher->registerHandler(
+            'stripe-webhook-customer.subscription.deleted',
+            $this->getInstance(CustomerSubscriptionDeletedWebhookHandler::class),
         );
     }
 }
