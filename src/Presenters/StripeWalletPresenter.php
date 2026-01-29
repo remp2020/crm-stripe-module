@@ -10,11 +10,14 @@ use Crm\StripeModule\Gateways\StripeWallet;
 use Crm\StripeModule\Models\StripeWalletClient;
 use Crm\UsersModule\Repositories\CountriesRepository;
 use Kdyby\Autowired\Attributes\Autowire;
+use Kdyby\Autowired\AutowireProperties;
 use Nette\Application\BadRequestException;
 use Stripe\PaymentIntent;
 
 class StripeWalletPresenter extends FrontendPresenter
 {
+    use AutowireProperties;
+
     #[Autowire]
     public PaymentsRepository $paymentsRepository;
 
