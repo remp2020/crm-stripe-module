@@ -151,6 +151,7 @@ class InvoicePaidWebhookHandler implements HandlerInterface
             user: $this->getUser($stripeInvoice),
             paymentItemContainer: $paymentItemContainer,
             amount: $subscriptionType->price,
+            recurrentCharge: true,
             metaData: $paymentMeta,
             paymentCountry: $countryResolution?->country,
             paymentCountryResolutionReason: $countryResolution?->reason,
