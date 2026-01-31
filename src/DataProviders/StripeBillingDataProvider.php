@@ -24,8 +24,13 @@ class StripeBillingDataProvider implements BillingDataProviderInterface
 
     public function isAvailable(ActiveRow $payment): bool
     {
-        $gateway = $this->gatewayFactory->getGateway($payment->payment_gateway->code);
-        return $gateway instanceof StripeBillingRecurrent;
+        try {
+            $gateway = $this->gatewayFactory->getGateway($payment->payment_gateway->code);
+            return $gateway instanceof StripeBillingRecurrent;
+        } catch (\Crm\PaymentsModule\Models\UnknownPaymentMethodCode $e) {
+            // Payment has obsolete/unregistered gateway, Stripe billing is not available
+            return false;
+        }
     }
 
     public function isInvoiceable(ActiveRow $payment): bool
