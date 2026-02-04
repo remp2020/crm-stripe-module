@@ -5,6 +5,7 @@ namespace Crm\StripeModule\Gateways;
 use Crm\ApplicationModule\Models\Config\ApplicationConfig;
 use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
 use Crm\PaymentsModule\Models\Gateways\RecurrentPaymentInterface;
+use Crm\PaymentsModule\Models\Gateways\RefundableInterface;
 use Crm\PaymentsModule\Models\Gateways\StoppableExternallyChargedRecurrentPaymentInterface;
 use Crm\PaymentsModule\Models\OneStopShop\CountryResolution;
 use Crm\PaymentsModule\Models\Payment\PaymentStatusEnum;
@@ -33,8 +34,10 @@ use Stripe\Invoice;
 use Stripe\PaymentMethod;
 use Tracy\Debugger;
 
-class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPaymentInterface, StoppableExternallyChargedRecurrentPaymentInterface
+class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPaymentInterface, StoppableExternallyChargedRecurrentPaymentInterface, RefundableInterface
 {
+    use RefundTrait;
+
     public const GATEWAY_CODE = 'stripe_billing_recurrent';
 
     protected ?Session $checkoutSession = null;

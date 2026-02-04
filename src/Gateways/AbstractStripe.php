@@ -5,7 +5,6 @@ namespace Crm\StripeModule\Gateways;
 use Crm\ApplicationModule\Models\Config\ApplicationConfig;
 use Crm\PaymentsModule\Models\GatewayFail;
 use Crm\PaymentsModule\Models\Gateways\GatewayAbstract;
-use Crm\PaymentsModule\Models\Gateways\RefundStatusEnum;
 use Crm\PaymentsModule\Models\Gateways\RefundableInterface;
 use Crm\PaymentsModule\Repositories\PaymentMetaRepository;
 use Crm\StripeModule\Models\PaymentMeta;
@@ -13,25 +12,19 @@ use Crm\StripeModule\Models\StripeService;
 use Crm\StripeModule\Repositories\StripeCheckoutSessionsRepository;
 use Crm\SubscriptionsModule\Repositories\SubscriptionTypeItemsRepository;
 use Crm\UsersModule\Repositories\UserMetaRepository;
-use Exception;
 use Nette\Application\LinkGenerator;
 use Nette\Database\Table\ActiveRow;
 use Nette\Http\Response;
 use Nette\Localization\Translator;
-use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
 
 class AbstractStripe extends GatewayAbstract implements RefundableInterface
 {
-    public const GATEWAY_CODE = 'stripe';
+    use RefundTrait;
 
-    public const REFUND_ID = 'stripe_refund_id';
-    public const REFUND_AMOUNT = 'refund_amount';
-    public const REFUND_DATE = 'refund_date';
-    public const REFUND_FAILURE_REASON = 'refund_failure_reason';
-    public const REFUND_FAILURE_BALANCE_TRANSACTION = 'refund_failure_balance_transaction';
+    public const GATEWAY_CODE = 'stripe';
 
     protected PaymentIntent $paymentIntent;
 
@@ -166,34 +159,5 @@ class AbstractStripe extends GatewayAbstract implements RefundableInterface
         }
 
         return $this->paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function refund(ActiveRow $payment, float $amount): RefundStatusEnum
-    {
-        $paymentIntentId = $this->paymentMetaRepository->values($payment, PaymentMeta::PAYMENT_INTENT_ID)->fetch()?->value;
-        if (!$paymentIntentId) {
-            return RefundStatusEnum::Failure;
-        }
-
-        $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
-
-        try {
-            $refund = $this->stripeService->createRefund(
-                paymentIntent: $paymentIntent,
-                amount: (float) abs($amount),
-            );
-
-            $this->paymentMetaRepository->add($payment, self::REFUND_ID, $refund->id);
-            $this->paymentMetaRepository->add($payment, self::REFUND_AMOUNT, $amount);
-            $this->paymentMetaRepository->add($payment, self::REFUND_DATE, (new \DateTime)->format(DATE_RFC3339));
-
-            return RefundStatusEnum::Success;
-        } catch (ApiErrorException $e) {
-            $this->paymentMetaRepository->add($payment, self::REFUND_FAILURE_REASON, $e->getMessage());
-            return RefundStatusEnum::Failure;
-        }
     }
 }
