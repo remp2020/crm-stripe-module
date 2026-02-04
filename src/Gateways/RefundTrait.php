@@ -23,7 +23,19 @@ trait RefundTrait
 
     public function refund(ActiveRow $payment, float $amount): RefundStatusEnum
     {
-        $paymentIntentId = $this->paymentMetaRepository->values($payment, PaymentMeta::PAYMENT_INTENT_ID)->fetch()?->value;
+        $paymentIntentId = $this->paymentMetaRepository->findByPaymentAndKey($payment, PaymentMeta::PAYMENT_INTENT_ID)?->value;
+
+        if (!$paymentIntentId) {
+            $invoiceId = $this->paymentMetaRepository->findByPaymentAndKey($payment, PaymentMeta::INVOICE_ID)?->value;
+            if ($invoiceId) {
+                $stripeInvoice = $this->stripeService->retrieveInvoice($invoiceId);
+                foreach ($this->stripeService->retrieveInvoicePayments($stripeInvoice) as $invoicePayment) {
+                    $paymentIntentId = $invoicePayment->payment->payment_intent;
+                    break;
+                }
+            }
+        }
+
         if (!$paymentIntentId) {
             return RefundStatusEnum::Failure;
         }

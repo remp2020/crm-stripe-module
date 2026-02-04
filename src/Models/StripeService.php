@@ -12,8 +12,10 @@ use Money\Number;
 use Money\Parser\DecimalMoneyParser;
 use Nette\Database\Table\ActiveRow;
 use Stripe\Checkout\Session;
+use Stripe\Collection;
 use Stripe\Customer;
 use Stripe\Invoice;
+use Stripe\InvoicePayment;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Refund;
@@ -254,6 +256,16 @@ class StripeService
             'expand' => [
                 'customer',
             ],
+        ]);
+    }
+
+    /**
+     * @return Collection<InvoicePayment>
+     */
+    public function retrieveInvoicePayments(Invoice $invoice): Collection
+    {
+        return $this->getClient()->invoicePayments->all([
+            'invoice' => $invoice->id,
         ]);
     }
 
