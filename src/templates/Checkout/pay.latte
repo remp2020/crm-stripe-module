@@ -1,26 +1,13 @@
-<!DOCTYPE html>
-<html lang="{$language}" dir="ltr">
-<head>
-    <title>{ifset #title}{include title|striptags} | {/ifset}</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    {ifset $locale}
-        <meta property="og:locale" content="{$locale}">
-    {/ifset}
-    <link rel="canonical" href={link //this} />
-
+{block #head}
     <script src="https://js.stripe.com/clover/stripe.js"></script>
-</head>
-<body>
+{/block}
+
+{block #content}
 
 <div class="wrapper">
     <section id="checkout">
-
     </section>
 </div>
-
-</body>
-</html>
 
 <script>
     const stripe = Stripe({$stripePublishableKey});

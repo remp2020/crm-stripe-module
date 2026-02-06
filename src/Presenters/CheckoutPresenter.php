@@ -29,6 +29,17 @@ class CheckoutPresenter extends FrontendPresenter
     #[Autowire]
     public GatewayFactory $gatewayFactory;
 
+    public function startup()
+    {
+        parent::startup();
+
+        if ($this->layoutManager->exists($this->getLayoutName() . '_plain')) {
+            $this->setLayout($this->getLayoutName() . '_plain');
+        } else {
+            $this->setLayout('plain');
+        }
+    }
+
     public function renderRedirect(string $checkoutSessionId)
     {
         $checkoutSession = $this->stripeService->retrieveCheckoutSession($checkoutSessionId);

@@ -6,6 +6,7 @@ use Crm\ApiModule\Models\Api\ApiRoutersContainerInterface;
 use Crm\ApiModule\Models\Authorization\NoAuthorization;
 use Crm\ApiModule\Models\Router\ApiIdentifier;
 use Crm\ApiModule\Models\Router\ApiRoute;
+use Crm\ApplicationModule\Application\Managers\LayoutManager;
 use Crm\ApplicationModule\Application\Managers\SeederManager;
 use Crm\ApplicationModule\CrmModule;
 use Crm\ApplicationModule\Models\DataProvider\DataProviderManager;
@@ -86,6 +87,14 @@ class StripeModule extends CrmModule
         $dispatcher->registerHandler(
             'stripe-webhook-customer.subscription.deleted',
             $this->getInstance(CustomerSubscriptionDeletedWebhookHandler::class),
+        );
+    }
+
+    public function registerLayouts(LayoutManager $layoutManager)
+    {
+        $layoutManager->registerLayout(
+            'plain',
+            realpath(__DIR__ . '/templates/@plain_layout.latte'),
         );
     }
 }

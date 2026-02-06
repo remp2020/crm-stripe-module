@@ -1,4 +1,8 @@
-<script src="https://js.stripe.com/clover/stripe.js"></script>
+{block #head}
+    <script src="https://js.stripe.com/clover/stripe.js"></script>
+{/block}
+
+{block #content}
 
 <script type="text/javascript">
     window.location.href = {$checkoutUrl};
