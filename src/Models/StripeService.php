@@ -286,7 +286,9 @@ class StripeService
 
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        return $this->getClient()->subscriptions->cancel($subscriptionId);
+        return $this->getClient()->subscriptions->update($subscriptionId,[
+            'cancel_at_period_end' => true,
+        ]);
     }
 
     public function getPaymentForCheckoutSession(ActiveRow $checkoutSessionRow): ActiveRow
