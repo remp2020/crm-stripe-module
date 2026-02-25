@@ -35,24 +35,46 @@ class StripeBillingDataProvider implements BillingDataProviderInterface
 
     public function isInvoiceable(ActiveRow $payment): bool
     {
-        return $this->paymentMetaRepository->findByPaymentAndKey(
+        $invoiceUrl = $this->paymentMetaRepository->findByPaymentAndKey(
+            payment: $payment,
+            key: PaymentMeta::INVOICE_URL,
+        );
+        if ($invoiceUrl) {
+            return true;
+        }
+
+        $invoiceId = $this->paymentMetaRepository->findByPaymentAndKey(
             payment: $payment,
             key: PaymentMeta::INVOICE_ID,
-        ) !== null;
+        );
+        if ($invoiceId) {
+            return true;
+        }
+
+        return false;
     }
 
     public function generate(ActiveRow $payment): Response
     {
+        $stripeInvoiceUrl = $this->paymentMetaRepository->findByPaymentAndKey(
+            payment: $payment,
+            key: PaymentMeta::INVOICE_URL,
+        )?->value;
+
+        if ($stripeInvoiceUrl) {
+            return new RedirectResponse($stripeInvoiceUrl);
+        }
+
         $stripeInvoiceId = $this->paymentMetaRepository->findByPaymentAndKey(
             payment: $payment,
             key: PaymentMeta::INVOICE_ID,
         )?->value;
 
-        if (!$stripeInvoiceId) {
-            throw new StripeBillingException("No Stripe Invoice ID available for payment {$payment->id}.");
+        if ($stripeInvoiceId) {
+            $stripeInvoice = $this->stripeService->retrieveInvoice($stripeInvoiceId);
+            return new RedirectResponse($stripeInvoice->invoice_pdf);
         }
 
-        $stripeInvoice = $this->stripeService->retrieveInvoice($stripeInvoiceId);
-        return new RedirectResponse($stripeInvoice->invoice_pdf);
+        throw new StripeBillingException("No Stripe Invoice ID or URL available for payment {$payment->id}.");
     }
 }
