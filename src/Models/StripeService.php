@@ -286,6 +286,11 @@ class StripeService
 
     public function cancelSubscription(string $subscriptionId): Subscription
     {
+        $stripeSubscription = $this->retrieveSubscription($subscriptionId);
+        if ($stripeSubscription->schedule) {
+            $this->getClient()->subscriptionSchedules->release($stripeSubscription->schedule);
+        }
+
         return $this->getClient()->subscriptions->update($subscriptionId, [
             'cancel_at_period_end' => true,
         ]);
