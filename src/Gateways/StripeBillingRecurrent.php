@@ -253,7 +253,7 @@ class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPayment
         return PaymentStatusEnum::Prepaid->value;
     }
 
-    public function getSubscriptionExpiration(string $cid = null): \DateTime
+    public function getSubscriptionExpiration(?string $cid = null): \DateTime
     {
         $stripeSubscription = $this->stripeService->retrieveSubscription($cid);
         return DateTime::from($stripeSubscription->items->first()->current_period_end);
