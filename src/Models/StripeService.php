@@ -128,6 +128,7 @@ class StripeService
             'automatic_tax' => [
                 'enabled' => true,
             ],
+            'billing_address_collection' => Session::BILLING_ADDRESS_COLLECTION_REQUIRED,
             'subscription_data' => [
                 'metadata' => [
                     'client_reference_id' => $stripeCheckoutReference,
