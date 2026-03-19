@@ -120,7 +120,6 @@ class StripeService
 
         $checkoutSessionConfig = [
             'customer' => $stripeCustomer->id,
-            'payment_method_types' => [PaymentMethod::TYPE_CARD],
             'mode' => Session::MODE_SUBSCRIPTION,
             'ui_mode' => Session::UI_MODE_EMBEDDED,
             'return_url' => $returnUrl,
