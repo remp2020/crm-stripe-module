@@ -129,6 +129,9 @@ class StripeService
                 'enabled' => true,
             ],
             'billing_address_collection' => Session::BILLING_ADDRESS_COLLECTION_REQUIRED,
+            'shipping_address_collection' => [
+                'allowed_countries' => ['SK'],
+            ],
             'subscription_data' => [
                 'metadata' => [
                     'client_reference_id' => $stripeCheckoutReference,
