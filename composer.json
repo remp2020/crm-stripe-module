@@ -5,8 +5,8 @@
   "homepage": "https://remp2030.com",
   "license": "MIT",
   "require": {
-    "php": "^8.2",
-    "stripe/stripe-php": "~v18.0"
+    "php": "^8.3",
+    "stripe/stripe-php": "^19.0"
   },
   "minimum-stability": "dev",
   "autoload": {
