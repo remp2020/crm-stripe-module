@@ -64,10 +64,6 @@ class StripeService
             $stripeCustomer = $this->getCustomerByEmail($user->email);
         }
 
-        if (!$stripeCustomer) {
-            $stripeCustomer = $this->createCustomer($user->email);
-        }
-
         $this->userMetaRepository->add(
             user: $user,
             key: UserMeta::STRIPE_CUSTOMER_ID,
