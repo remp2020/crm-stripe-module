@@ -30,6 +30,7 @@ use Nette\Http\Response;
 use Nette\Localization\Translator;
 use Nette\Utils\DateTime;
 use Stripe\Checkout\Session;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Invoice;
 use Stripe\PaymentMethod;
 use Tracy\Debugger;
@@ -180,7 +181,13 @@ class StripeBillingRecurrent extends GatewayAbstract implements RecurrentPayment
 
     public function checkValid($token): bool
     {
-        return $this->stripeService->retrieveSubscription($token) !== null;
+        try {
+            $this->stripeService->retrieveSubscription($token);
+        } catch (ApiErrorException $e) {
+            Debugger::log($e, Debugger::EXCEPTION);
+            return false;
+        }
+        return true;
     }
 
     public function checkExpire($recurrentPayments)
