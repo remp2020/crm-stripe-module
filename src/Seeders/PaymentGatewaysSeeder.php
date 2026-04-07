@@ -58,9 +58,9 @@ class PaymentGatewaysSeeder implements ISeeder
                 true,
                 false,
             );
-            $output->writeln('  <comment>* payment gateway <info>{$code)</info> created</comment>');
+            $output->writeln("  <comment>* payment gateway <info>{$code}</info> created</comment>");
         } else {
-            $output->writeln('  * payment gateway <info>{$code}</info> exists');
+            $output->writeln("  * payment gateway <info>{$code}</info> exists");
         }
 
         $code = StripeBillingRecurrent::GATEWAY_CODE;
@@ -72,9 +72,9 @@ class PaymentGatewaysSeeder implements ISeeder
                 true,
                 true,
             );
-            $output->writeln('  <comment>* payment gateway <info>{$code)</info> created</comment>');
+            $output->writeln("  <comment>* payment gateway <info>{$code}</info> created</comment>");
         } else {
-            $output->writeln('  * payment gateway <info>{$code}</info> exists');
+            $output->writeln("  * payment gateway <info>{$code}</info> exists");
         }
     }
 }
